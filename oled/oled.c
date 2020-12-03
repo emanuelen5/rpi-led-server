@@ -23,17 +23,18 @@ int main(int argc, char **argv)
         gettimeofday(&tv, NULL);
         timenow = localtime(&tv.tv_sec);
 
-        SSD1331_char(0, 16, value[timenow->tm_hour / 10], 12, 1,RED);
-        SSD1331_char(14, 16, value[timenow->tm_hour % 10], 12, 1,RED);
+        char str_buf[50];
+        sprintf(str_buf, "%02d", timenow->tm_hour);
+        SSD1331_string(0, 16, str_buf, 12, 1, RED);
         SSD1331_char(26, 16, ':' , 12, 1,WHITE);
-        SSD1331_char(38, 16, value[timenow->tm_min / 10], 12, 1, GREEN);
-        SSD1331_char(50, 16, value[timenow->tm_min % 10], 12, 1, GREEN);
+        sprintf(str_buf, "%02d", timenow->tm_min);
+        SSD1331_string(38, 16, str_buf, 12, 1, GREEN);
         SSD1331_char(62, 16, ':' , 12, 1,WHITE);
-        SSD1331_char(74, 16, value[timenow->tm_sec / 10], 12, 1, BLUE);
-        SSD1331_char(86, 16, value[timenow->tm_sec % 10], 12, 1, BLUE);
+        sprintf(str_buf, "%02d", timenow->tm_sec);
+        SSD1331_string(74, 16, str_buf, 12, 1, BLUE);
         SSD1331_char(14, 32, '.' , 12, 1,WHITE);
-        SSD1331_char(26, 32, value[tv.tv_usec / 100000], 12, 1, PURPLE);
-        SSD1331_char(38, 32, value[(tv.tv_usec / 10000) % 10], 12, 1, PURPLE);
+        sprintf(str_buf, "%06ld", tv.tv_usec);
+        SSD1331_string(26, 32, str_buf, 12, 1, PURPLE);
 
         SSD1331_string(6, 46, "emaus demo", 12, 1, CYAN);
 
