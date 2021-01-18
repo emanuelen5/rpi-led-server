@@ -85,8 +85,8 @@ void SSD1331_draw_point(int x, int y, uint16_t hwColor) {
     {
         return;
     }
-    buffer[x * 2 + y * OLED_WIDTH * 2] = hwColor >> 8;
-    buffer[x * 2 + y * OLED_WIDTH * 2 + 1] = hwColor;
+    buffer[OLED_WIDTH * OLED_HEIGHT * 2 - (x * 2 + y * OLED_WIDTH * 2)] = hwColor >> 8;
+    buffer[OLED_WIDTH * OLED_HEIGHT * 2 - (x * 2 + y * OLED_WIDTH * 2 + 1)] = hwColor;
 }
 
 void SSD1331_char1616(uint8_t x, uint8_t y, uint8_t chChar, uint16_t hwColor) {
