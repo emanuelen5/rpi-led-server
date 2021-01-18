@@ -3,6 +3,11 @@ import time
 import board
 import neopixel
 import time
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
+args = parser.parse_args()
 
 
 # Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
@@ -10,7 +15,7 @@ import time
 pixel_pin = board.D18
 
 # The number of NeoPixels
-num_pixels = 12
+num_pixels = args.pixel_count
 
 # The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
 # For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
