@@ -14,7 +14,7 @@ class Display:
         self.buffer = np.zeros(DISPLAY_SIZE)
 
     def string(self, x, y, s: str, color=(1., 1., 1.)):
-        cv2.putText(self.buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.3, color)
+        cv2.putText(self.buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.25, color)
 
     def display(self):
         cv2.imshow("SSD1331", cv2.resize(self.buffer, fx=3., fy=3., dsize=None))
