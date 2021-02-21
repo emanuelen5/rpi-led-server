@@ -1,11 +1,13 @@
 from distutils.core import setup, Extension
+import numpy
 
 module1 = Extension(
     'oled',
     sources=[
         'oled/liboled.c',
     ],
-    include_dirs=["oled"]
+    include_dirs=["oled", numpy.get_include()],
+    extra_compile_args=["-Ofast", "-march=native"],
 )
 
 setup(
