@@ -35,4 +35,5 @@ static struct PyModuleDef module = {
 
 PyMODINIT_FUNC PyInit_oled(void) {
     return PyModule_Create(&module);
+    import_array();
 }
