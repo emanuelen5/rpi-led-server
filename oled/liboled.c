@@ -27,13 +27,13 @@ static PyMethodDef methods[] = {
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    "oled",
+    "liboled",
     "Python interface for the OLED C library function",
     -1,
     methods
 };
 
-PyMODINIT_FUNC PyInit_oled(void) {
+PyMODINIT_FUNC PyInit_liboled(void) {
     return PyModule_Create(&module);
     import_array();
 }

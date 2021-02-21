@@ -9,6 +9,7 @@ DISPLAY_SIZE = (64, 96, 3)
 @dataclass
 class Display:
     buffer: np.ndarray = field(default_factory=lambda: np.zeros(DISPLAY_SIZE, dtype=np.float32))
+    displayed: bool = False
 
     def clear(self):
         self.buffer = np.zeros(DISPLAY_SIZE)
@@ -18,6 +19,9 @@ class Display:
 
     def display(self):
         cv2.imshow("SSD1331", cv2.resize(self.buffer, fx=3., fy=3., dsize=None))
+        if not self.displayed:
+            self.displayed = True
+            print("Press q to exit")
         if cv2.waitKey(1) & 0xFF == ord('q'):
             sys.exit(0)
 

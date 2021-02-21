@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 import numpy
 
 module1 = Extension(
-    'oled',
+    'liboled',
     sources=[
         'oled/liboled.c',
     ],

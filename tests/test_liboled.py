@@ -1,10 +1,10 @@
 import unittest
-import oled
+import liboled
 
 
 class TestSmoke(unittest.TestCase):
     def test_asd(self):
-        self.assertIsNotNone(oled.asd)
+        self.assertIsNotNone(liboled.asd)
 
 
 if __name__ == '__main__':
