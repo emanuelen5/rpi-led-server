@@ -1,14 +1,29 @@
 from distutils.core import setup, Extension
 import numpy
+from util import is_raspberry_pi
 
-module1 = Extension(
-    'liboled',
-    sources=[
-        'oled/liboled.c',
-    ],
-    include_dirs=["oled", numpy.get_include()],
-    extra_compile_args=["-Ofast", "-march=native"],
-)
+if is_raspberry_pi():
+    module = Extension(
+        'liboled',
+        sources=[
+            'oled/liboled.c',
+            'oled/ssd1331.c',
+            'oled/fonts.c',
+        ],
+        include_dirs=["oled", numpy.get_include()],
+        extra_compile_args=["-Ofast", "-march=native"],
+    )
+else:
+    module = Extension(
+        'liboled',
+        sources=[
+            'oled/liboled.c',
+            'oled/mocks/ssd1331.c',
+            'oled/fonts.c',
+        ],
+        include_dirs=["oled", "oled/mocks", numpy.get_include()],
+        extra_compile_args=["-Ofast", "-march=native"],
+    )
 
 setup(
     name='oled',
@@ -18,5 +33,5 @@ setup(
     author_email='erasmus.cedernaes@gmail.com',
     url='https://github.com/emanuelen5/rpi-led-server/',
     long_description='Python wrapper for controlling an OLED display',
-    ext_modules=[module1]
+    ext_modules=[module]
 )
