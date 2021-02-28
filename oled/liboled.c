@@ -4,24 +4,36 @@
 #include <numpy/arrayobject.h>
 #include "ssd1331.h"
 
-static PyObject *method_fputs(PyObject *self, PyObject *args) {
-    char *str, *filename = NULL;
-    int bytes_copied = -1;
+static PyObject *take_array(PyObject *self, PyObject *args) {
+    PyObject *arg1 = NULL;
+    PyArrayObject *arr = NULL;
 
     /* Parse arguments */
-    if(!PyArg_ParseTuple(args, "ss", &str, &filename)) {
+    printf("Parsing tuple\n");
+    if(!PyArg_ParseTuple(args, "O", &arg1)) {
         return NULL;
     }
 
-    FILE *fp = fopen(filename, "w");
-    bytes_copied = fputs(str, fp);
-    fclose(fp);
+    printf("Getting array\n");
+    arr = (PyArrayObject*) PyArray_FROM_OTF(arg1, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    if (arr == NULL) return NULL;
 
-    return PyLong_FromLong(bytes_copied);
+    int N = (int)PyArray_DIM(arr, 0);
+    int dims = PyArray_NDIM(arr);
+    npy_intp *shape = PyArray_SHAPE(arr);
+    for (int i=0; i<dims; i++) {
+    	printf("Array->shape[%d]=%d\n", i, shape[i]);
+    }
+
+    printf("Ensuring array\n");
+    // arr = PyArray_FromAny(obj, );
+
+    printf("Returning None\n");
+    Py_RETURN_NONE;
 }
 
 static PyMethodDef methods[] = {
-    {"asd", method_fputs, METH_VARARGS, NULL},
+    {"take_array", take_array, METH_VARARGS, NULL},
     {NULL, NULL, 0, NULL}
 };
 
@@ -34,6 +46,6 @@ static struct PyModuleDef module = {
 };
 
 PyMODINIT_FUNC PyInit_liboled(void) {
-    return PyModule_Create(&module);
     import_array();
+    return PyModule_Create(&module);
 }
