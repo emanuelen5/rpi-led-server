@@ -28,8 +28,7 @@ static PyObject *take_array(PyObject *self, PyObject *args) {
     printf("Ensuring array\n");
     // arr = PyArray_FromAny(obj, );
 
-    printf("Returning None\n");
-    Py_RETURN_NONE;
+    return arr;
 }
 
 static PyMethodDef methods[] = {
