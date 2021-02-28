@@ -69,7 +69,7 @@ void SSD1331_begin()
 }
 
 void SSD1331_clear() {
-    int i;
+    unsigned int i;
     for(i = 0; i < sizeof(buffer); i++)
     {
         buffer[i] = 0;
