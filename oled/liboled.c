@@ -66,8 +66,6 @@ static PyObject *display(PyObject *self, PyObject *args) {
 			g = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1);
 			b = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2);
 			display_buffer[y * OLED_WIDTH + x] = PACK_RGB(r, g, b);
-			if (x<5 && y==0)
-				fprintf(stdout, "display: [%d,%d] = (%d,%d,%d) = 0x%04X\n", y, x, r, b, g, PACK_RGB(r, g, b));
 		}
 	}
 	SSD1331_display(display_buffer);
@@ -106,14 +104,9 @@ static PyObject *get_buffer(PyObject *self, PyObject *args) {
 	for (int y=0; y < OLED_HEIGHT; y++) {
 		for (int x=0; x < OLED_WIDTH; x++) {
 			rgb = display_buffer[y * OLED_WIDTH + x];
-			uint8_t r = UNPACK_R(rgb);
-			uint8_t g = UNPACK_G(rgb);
-			uint8_t b = UNPACK_B(rgb);
-			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 0) = r;
-			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 1) = g;
-			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 2) = b;
-			if (x<5 && y==0)
-				fprintf(stdout, "get_buffer: [%d,%d] = (%d,%d,%d) = 0x%04X\n", y, x, r, g, b, rgb);
+			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 0) = UNPACK_R(rgb);
+			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 1) = UNPACK_G(rgb);
+			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 2) = UNPACK_B(rgb);
 		}
 	}
 
