@@ -54,6 +54,17 @@ static PyObject *init(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
+	Py_INCREF(frame_buffer);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *display(PyObject *self, PyObject *args) {
+	if (frame_buffer == NULL) {
+		PyErr_SetString(PyExc_RuntimeError, "The module has not been initialized");
+		return NULL;
+	}
+
 	Py_RETURN_NONE;
 }
 
@@ -77,7 +88,8 @@ static PyMethodDef methods[] = {
     {"take_array", take_array, METH_VARARGS, "Test method for learning Numpy C API"},
     {"init", init, METH_VARARGS, "Initializes memory and communication with the hardware"},
     {"deinit", deinit, METH_NOARGS, "Releases the hardware and memory"},
-    {"get_array", get_array, METH_NOARGS, "Gets the Numpy C array that "},
+    {"get_array", get_array, METH_NOARGS, "Gets the Numpy C array that is used for the display"},
+    {"display", display, METH_NOARGS, "Refresh the display with the current image data"},
     {NULL, NULL, 0, NULL}
 };
 
