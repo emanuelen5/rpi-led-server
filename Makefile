@@ -5,3 +5,7 @@ liboled:
 
 test:
 	python -m pytest tests/
+
+clean:
+	rm -fv liboled*.so
+	rm -rf build

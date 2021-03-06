@@ -55,6 +55,7 @@ static PyObject *init(PyObject *self, PyObject *args) {
 	}
 
 	Py_INCREF(frame_buffer);
+	SSD1331_begin();
 
 	Py_RETURN_NONE;
 }
@@ -69,9 +70,15 @@ static PyObject *display(PyObject *self, PyObject *args) {
 }
 
 static PyObject *deinit(PyObject *self, PyObject *args) {
-	// TODO: Check if reference count is incremented on init
+	if (frame_buffer == NULL) {
+		PyErr_SetString(PyExc_RuntimeError, "The module has not been initialized");
+		return NULL;
+	}
+
+	SSD1331_end();
 	Py_XDECREF(frame_buffer);
 	frame_buffer = NULL;
+
 	Py_RETURN_NONE;
 }
 

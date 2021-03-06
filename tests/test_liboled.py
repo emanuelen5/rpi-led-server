@@ -9,10 +9,17 @@ class TestSmoke(unittest.TestCase):
         self.arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))
 
     def tearDown(self) -> None:
-        liboled.deinit()
+        try:
+            liboled.deinit()
+        except RuntimeError:
+            pass
 
-    def test_has_take_array(self):
+    def test_has_functions(self):
         self.assertTrue(hasattr(liboled, "take_array"))
+        self.assertTrue(hasattr(liboled, "get_array"))
+        self.assertTrue(hasattr(liboled, "init"))
+        self.assertTrue(hasattr(liboled, "deinit"))
+        self.assertTrue(hasattr(liboled, "display"))
 
     def test_error_on_double_init(self):
         liboled.init(self.arr)
@@ -43,7 +50,10 @@ class TestLibOled(unittest.TestCase):
         liboled.init(self.arr)
 
     def tearDown(self) -> None:
-        liboled.deinit()
+        try:
+            liboled.deinit()
+        except RuntimeError:
+            pass
 
     def test_display(self):
         liboled.display()

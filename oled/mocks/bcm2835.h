@@ -14,6 +14,7 @@ static void bcm2835_delay(int a) {};
 static void bcm2835_gpio_fsel(int a, int b) {};
 static void bcm2835_gpio_write(int a, int b) {};
 static void bcm2835_spi_begin(void) {};
+static void bcm2835_spi_end(void) {};
 static void bcm2835_spi_chipSelect(int a) {};
 static void bcm2835_spi_setBitOrder(int a) {};
 static void bcm2835_spi_setChipSelectPolarity(int a, int b) {};

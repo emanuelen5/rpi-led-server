@@ -69,6 +69,7 @@ enum Color {
 #define DC  24
 
 void SSD1331_begin();
+void SSD1331_end();
 void SSD1331_display();
 void SSD1331_clear();
 void SSD1331_pixel(int x,int y, char color);

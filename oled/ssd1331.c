@@ -68,6 +68,10 @@ void SSD1331_begin()
     command(NORMAL_BRIGHTNESS_DISPLAY_ON);//set display on
 }
 
+void SSD1331_end() {
+	bcm2835_spi_end();
+}
+
 void SSD1331_clear() {
     unsigned int i;
     for(i = 0; i < sizeof(buffer); i++)
