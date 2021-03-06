@@ -8,9 +8,9 @@
 PyArrayObject *frame_buffer = NULL;
 uint16_t display_buffer[OLED_WIDTH * OLED_HEIGHT];
 #define PACK_RGB(R,G,B)  ((((uint16_t) R >> 3) << 11) | (((uint16_t) G >> 2) << 5) | ((uint16_t) B >> 3))
-#define UNPACK_R(rgb)  ((uint8_t)((rgb >> 11) & 0xF8))
-#define UNPACK_G(rgb)  ((uint8_t)((rgb >> 5) & 0xFC))
-#define UNPACK_B(rgb)  ((uint8_t)((rgb >> 0) & 0xF8))
+#define UNPACK_R(rgb)  ((uint8_t)((rgb >> 8) & 0xF8))
+#define UNPACK_G(rgb)  ((uint8_t)((rgb >> 3) & 0xFC))
+#define UNPACK_B(rgb)  ((uint8_t)((rgb << 3) & 0xF8))
 
 static bool check_initialization(void) {
 	if (frame_buffer == NULL) {
@@ -67,7 +67,7 @@ static PyObject *display(PyObject *self, PyObject *args) {
 			b = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2);
 			display_buffer[y * OLED_WIDTH + x] = PACK_RGB(r, g, b);
 			if (x<5 && y==0)
-				fprintf(stderr, "display: [%d,%d] = (%d,%d,%d) = 0x%04X\n", y, x, r, b, g, PACK_RGB(r, g, b));
+				fprintf(stdout, "display: [%d,%d] = (%d,%d,%d) = 0x%04X\n", y, x, r, b, g, PACK_RGB(r, g, b));
 		}
 	}
 	SSD1331_display(display_buffer);
@@ -105,7 +105,7 @@ static PyObject *get_buffer(PyObject *self, PyObject *args) {
 	uint16_t rgb;
 	for (int y=0; y < OLED_HEIGHT; y++) {
 		for (int x=0; x < OLED_WIDTH; x++) {
-			rgb = display_buffer[y * OLED_WIDTH * x];
+			rgb = display_buffer[y * OLED_WIDTH + x];
 			uint8_t r = UNPACK_R(rgb);
 			uint8_t g = UNPACK_G(rgb);
 			uint8_t b = UNPACK_B(rgb);
@@ -113,7 +113,7 @@ static PyObject *get_buffer(PyObject *self, PyObject *args) {
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 1) = g;
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 2) = b;
 			if (x<5 && y==0)
-				fprintf(stderr, "get_buffer: [%d,%d] = (%d,%d,%d) = 0x%04X\n", y, x, r, g, b, rgb);
+				fprintf(stdout, "get_buffer: [%d,%d] = (%d,%d,%d) = 0x%04X\n", y, x, r, g, b, rgb);
 		}
 	}
 
