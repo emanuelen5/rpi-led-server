@@ -3,21 +3,6 @@
 
 #include <stdint.h>
 
-#define RGB(R,G,B)  (((R >> 3) << 11) | ((G >> 2) << 5) | (B >> 3))
-enum Color {
-    BLACK     = RGB(  0,  0,  0), // black
-    GRAY      = RGB(192,192,192), // gray
-    WHITE     = RGB(255,255,255), // white
-    RED       = RGB(255,  0,  0), // red
-    PINK      = RGB(255,192,203), // pink
-    YELLOW    = RGB(255,255,  0), // yellow
-    GOLDEN    = RGB(255,215,  0), // golden
-    BROWN     = RGB(128, 42, 42), // brown
-    BLUE      = RGB(  0,  0,255), // blue
-    CYAN      = RGB(  0,255,255), // cyan
-    GREEN     = RGB(  0,255,  0), // green
-    PURPLE    = RGB(160, 32,240), // purple
-};
 #define DRAW_LINE                       0x21
 #define DRAW_RECTANGLE                  0x22
 #define COPY_WINDOW                     0x23
@@ -70,17 +55,7 @@ enum Color {
 
 void SSD1331_begin();
 void SSD1331_end();
-void SSD1331_display();
-void SSD1331_clear();
-void SSD1331_pixel(int x,int y, char color);
-void SSD1331_mono_bitmap(uint8_t x, uint8_t y, const uint8_t *pBmp, char chWidth, char chHeight, uint16_t hwColor);
-void SSD1331_bitmap24(uint8_t x, uint8_t y, uint8_t *pBmp, char chWidth, char chHeight);
-void SSD1331_string(uint8_t x, uint8_t y, const char *pString, uint8_t Size, uint8_t Mode, uint16_t hwColor);
-void SSD1331_char1616(uint8_t x, uint8_t y, uint8_t chChar, uint16_t hwColor);
-void SSD1331_char3216(uint8_t x, uint8_t y, uint8_t chChar, uint16_t hwColor);
-void SSD1331_char(uint8_t x, uint8_t y, char acsii, char size, char mode, uint16_t hwColor);
-void SSD1331_clear_screen(uint16_t hwColor);
-void SSD1331_draw_point(int chXpos, int chYpos, uint16_t hwColor);
+void SSD1331_display(uint16_t *);
 
 
 #endif

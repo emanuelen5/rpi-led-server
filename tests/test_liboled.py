@@ -24,7 +24,6 @@ class TestSmoke(unittest.TestCase):
             pass
 
     def test_has_functions(self):
-        self.assertTrue(hasattr(liboled, "take_array"))
         self.assertTrue(hasattr(liboled, "get_array"))
         self.assertTrue(hasattr(liboled, "init"))
         self.assertTrue(hasattr(liboled, "deinit"))
@@ -39,18 +38,12 @@ class TestSmoke(unittest.TestCase):
         liboled.init(self.arr)
         liboled.deinit()
 
-    def test_take_array_passes_by_reference(self):
+    def test_init_passes_by_reference(self):
         arr = self.arr
-        res = liboled.take_array(arr)
+        liboled.init(arr)
+        res = liboled.get_array()
         arr[0, 0] = arr[0, 0] - 1
-        self.assertTrue((res == arr).all())
-
-    def test_take_array_badcall(self):
-        arr = self.arr
-        with self.assertRaises(TypeError):
-            self.assertTrue(liboled.take_array(arr, arr))
-        with self.assertRaises(TypeError):
-            self.assertTrue(liboled.take_array(arr, test=arr))
+        numpy.testing.assert_equal(arr, res)
 
     def test_can_take_float(self):
         arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))

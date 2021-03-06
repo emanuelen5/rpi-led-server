@@ -8,7 +8,6 @@ if is_raspberry_pi():
         sources=[
             'oled/liboled.c',
             'oled/ssd1331.c',
-            'oled/fonts.c',
         ],
         include_dirs=["oled", numpy.get_include()],
         extra_compile_args=["-Ofast", "-march=native"],
@@ -20,7 +19,6 @@ else:
         sources=[
             'oled/liboled.c',
             'oled/ssd1331.c',
-            'oled/fonts.c',
         ],
         include_dirs=["oled", "oled/mocks", numpy.get_include()],
         extra_compile_args=["-Ofast", "-march=native"],

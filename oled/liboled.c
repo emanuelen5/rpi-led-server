@@ -7,26 +7,6 @@
 uint16_t buffer[OLED_WIDTH * OLED_HEIGHT];
 #define PACK_RGB(R,G,B)  ((((uint16_t) R >> 3) << 11) | (((uint16_t) G >> 2) << 5) | ((uint16_t) B >> 3))
 
-static PyObject *take_array(PyObject *self, PyObject *args) {
-    PyObject *arg1 = NULL;
-    PyArrayObject *arr = NULL;
-
-    if(!PyArg_ParseTuple(args, "O", &arg1)) {
-        return NULL;
-    }
-
-    arr = (PyArrayObject*) PyArray_FROM_OTF(arg1, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
-    if (arr == NULL) return NULL;
-
-    int dims = PyArray_NDIM(arr);
-    npy_intp *shape = PyArray_SHAPE(arr);
-    for (int i=0; i<dims; i++) {
-    	printf("Array->shape[%d]=%ld\n", i, shape[i]);
-    }
-
-    return (PyObject*) arr;
-}
-
 PyArrayObject *frame_buffer = NULL;
 static PyObject *init(PyObject *self, PyObject *args) {
 	if (frame_buffer != NULL) {
@@ -106,7 +86,6 @@ static PyObject *get_array(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef methods[] = {
-    {"take_array", take_array, METH_VARARGS, "Test method for learning Numpy C API"},
     {"init", init, METH_VARARGS, "Initializes memory and communication with the hardware"},
     {"deinit", deinit, METH_NOARGS, "Releases the hardware and memory"},
     {"get_array", get_array, METH_NOARGS, "Gets the Numpy C array that is used for the display"},
