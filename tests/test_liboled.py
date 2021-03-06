@@ -28,6 +28,7 @@ class TestSmoke(unittest.TestCase):
         self.assertTrue(hasattr(liboled, "init"))
         self.assertTrue(hasattr(liboled, "deinit"))
         self.assertTrue(hasattr(liboled, "display"))
+        self.assertTrue(hasattr(liboled, "get_buffer"))
 
     def test_error_on_double_init(self):
         liboled.init(self.arr)
@@ -46,7 +47,7 @@ class TestSmoke(unittest.TestCase):
         numpy.testing.assert_equal(arr, res)
 
     def test_can_take_float(self):
-        arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))
+        arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3)).astype(dtype=np.float32)
         liboled.init(arr)
 
     @parameterized.expand(
@@ -58,6 +59,16 @@ class TestSmoke(unittest.TestCase):
         arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))
         with self.assertRaises(ValueError):
             liboled.init(arr)
+
+    def test_get_buffer(self):
+        liboled.init(self.arr)
+        liboled.display()
+        arr = liboled.get_buffer()
+        expected_array = (self.arr * 256.).astype(np.uint8)
+        expected_array[:, :, 0] = expected_array[:, :, 0] & 0xF8
+        expected_array[:, :, 1] = expected_array[:, :, 1] & 0xFC
+        expected_array[:, :, 2] = expected_array[:, :, 2] & 0xF8
+        numpy.testing.assert_equal(expected_array, arr)
 
 
 class TestLibOled(unittest.TestCase):
