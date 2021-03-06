@@ -4,6 +4,9 @@
 #include <numpy/arrayobject.h>
 #include "ssd1331.h"
 
+uint16_t buffer[OLED_WIDTH * OLED_HEIGHT];
+#define PACK_RGB(R,G,B)  ((((uint16_t) R >> 3) << 11) | (((uint16_t) G >> 2) << 5) | ((uint16_t) B >> 3))
+
 static PyObject *take_array(PyObject *self, PyObject *args) {
     PyObject *arg1 = NULL;
     PyArrayObject *arr = NULL;
@@ -49,7 +52,7 @@ static PyObject *init(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 
-	if (shape[0] != OLED_HEIGHT || shape[1] != OLED_WIDTH) {
+	if (shape[0] != OLED_HEIGHT || shape[1] != OLED_WIDTH || shape[2] != 3) {
 		PyErr_SetString(PyExc_ValueError, "Wrong shape of array.");
 		return NULL;
 	}
@@ -65,6 +68,17 @@ static PyObject *display(PyObject *self, PyObject *args) {
 		PyErr_SetString(PyExc_RuntimeError, "The module has not been initialized");
 		return NULL;
 	}
+
+	uint8_t r, g, b;
+	for (int y=0; y < OLED_HEIGHT; y++) {
+		for (int x=0; x < OLED_WIDTH; x++) {
+			r = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0);
+			g = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1);
+			b = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2);
+			buffer[y * OLED_WIDTH + x] = PACK_RGB(r, g, b);
+		}
+	}
+	SSD1331_display(buffer);
 
 	Py_RETURN_NONE;
 }

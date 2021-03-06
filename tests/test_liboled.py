@@ -2,6 +2,15 @@ import unittest
 import liboled
 import numpy as np
 import numpy.testing
+from parameterized import parameterized
+
+
+def custom_name_func_shape(testcase_func, param_num, param):
+    return f"{testcase_func.__name__}-{'x'.join(str(x) for x in param.args[0])}"
+
+
+def custom_name_func(testcase_func, param_num, param):
+    return f"{testcase_func.__name__}{parameterized.to_safe_name('_'.join(str(x) for x in param.args))}"
 
 
 class TestSmoke(unittest.TestCase):
@@ -43,6 +52,20 @@ class TestSmoke(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.assertTrue(liboled.take_array(arr, test=arr))
 
+    def test_can_take_float(self):
+        arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))
+        liboled.init(arr)
+
+    @parameterized.expand(
+        [(i,) for i in [np.uint8, np.uint16, np.uint32, np.uint64, np.int8, np.int16, np.int32, np.int64]],
+        custom_name_func
+    )
+    @unittest.skip("Might not need strict type checking")
+    def test_can_not_take_other_types(self, _dtype):
+        arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))
+        with self.assertRaises(ValueError):
+            liboled.init(arr)
+
 
 class TestLibOled(unittest.TestCase):
     def setUp(self) -> None:
@@ -57,6 +80,20 @@ class TestLibOled(unittest.TestCase):
 
     def test_display(self):
         liboled.display()
+
+    @parameterized.expand([(i,) for i in [
+        (liboled.OLED_HEIGHT - 1, liboled.OLED_WIDTH, 3),
+        (liboled.OLED_HEIGHT - 1, liboled.OLED_WIDTH, 3),
+        (liboled.OLED_HEIGHT + 1, liboled.OLED_WIDTH, 3),
+        (liboled.OLED_HEIGHT, liboled.OLED_WIDTH - 1, 3),
+        (liboled.OLED_HEIGHT, liboled.OLED_WIDTH + 1, 3),
+        (liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 2),
+        (liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 4),
+    ]], custom_name_func_shape)
+    def test_error_on_wrong_shape(self, shape):
+        liboled.deinit()
+        with self.assertRaises(ValueError):
+            liboled.init(np.zeros(shape))
 
     def test_get_array(self):
         arr = liboled.get_array()
