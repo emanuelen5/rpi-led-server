@@ -6,6 +6,9 @@ liboled:
 test:
 	python -m pytest tests/
 
+init:
+	pip install -r requirements-dev.txt -r requirements.txt
+
 clean:
 	rm -fv liboled*.so
 	rm -rf build
