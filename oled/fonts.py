@@ -18,13 +18,14 @@ class Bitmap:
               fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.)) -> np.ndarray:
         for i in range(self.width):
             for j in range(self.height):
-                if (self.pixels[i + (j // 8) * self.width] << j % 8) & 0x80:
+                idx = i * ((self.height + 7) // 8) + (j // 8)
+                if (self.pixels[idx] << j % 8) & 0x80:
                     color = fg
                 else:
                     color = bg
 
-                yy = y + i
-                xx = x + j
+                yy = y + j
+                xx = x + i
                 if 0 <= xx < img.shape[1] and 0 <= yy < img.shape[0]:
                     img[yy, xx, :] = color
         return img
@@ -40,7 +41,7 @@ def get_char1206_bitmap(c: str):
     idx = ord(c) - ord(" ")
     if idx > len(Font1206):
         raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(12, 6, Font1206[idx])
+    return Bitmap(6, 12, Font1206[idx])
 
 
 Font1206 = [
@@ -152,7 +153,7 @@ def get_char1608_bitmap(c: str):
     idx = ord(c) - ord(" ")
     if idx > len(Font1608):
         raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(16, 8, Font1608[idx])
+    return Bitmap(8, 16, Font1608[idx])
 
 
 Font1608 = [
@@ -264,7 +265,7 @@ def get_char1612_bitmap(c: str):
     idx = ord(c) - ord("0")
     if idx > len(Font1612):
         raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(16, 12, Font1612[idx])
+    return Bitmap(12, 16, Font1612[idx])
 
 
 Font1612 = [
@@ -303,7 +304,7 @@ def get_char3216_bitmap(c: str):
     idx = ord(c) - ord("0")
     if idx > len(Font3216):
         raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(32, 16, Font3216[idx])
+    return Bitmap(16, 32, Font3216[idx])
 
 
 Font3216 = [
