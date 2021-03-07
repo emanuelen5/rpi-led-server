@@ -1,3 +1,5 @@
+[![Build Python Package status badge](https://github.com/emanuelen5/rpi-led-server/actions/workflows/python.yml/badge.svg)](https://github.com/emanuelen5/rpi-led-server/actions/workflows/python.yml)
+
 # Raspberry Pi LED server
 This project will serve as an LED server that connects to external services through Ethernet and fetches data which can then be shown through the means of an LED light show.
 

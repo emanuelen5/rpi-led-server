@@ -1,1 +1,5 @@
 *.html
+__pycache__
+.idea
+build
+*.so
