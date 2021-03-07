@@ -293,7 +293,7 @@ def get_char3216_bitmap(c: str):
         raise TypeError("Can only get one character at a time")
     if c not in Font3216:
         raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(16, 32, Font3216[idx])
+    return Bitmap(16, 32, Font3216[c])
 
 
 Font3216 = {
