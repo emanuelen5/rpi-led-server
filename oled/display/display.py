@@ -18,10 +18,10 @@ class Display:
         cv2.putText(self.buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.25, color)
 
     def display(self):
-        liboled.display()
+        liboled.display(self.buffer)
 
     def open(self):
-        liboled.init(self.buffer)
+        liboled.init()
 
     @staticmethod
     def close():
