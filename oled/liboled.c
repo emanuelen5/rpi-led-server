@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "ssd1331.h"
 
-PyArrayObject *frame_buffer = NULL;
+bool is_initialized = false;
 uint16_t display_buffer[OLED_WIDTH * OLED_HEIGHT];
 #define PACK_RGB(R,G,B)  ((((uint16_t) R >> 3) << 11) | (((uint16_t) G >> 2) << 5) | ((uint16_t) B >> 3))
 #define UNPACK_R(rgb)  ((uint8_t)((rgb >> 8) & 0xF8))
@@ -13,18 +13,27 @@ uint16_t display_buffer[OLED_WIDTH * OLED_HEIGHT];
 #define UNPACK_B(rgb)  ((uint8_t)((rgb << 3) & 0xF8))
 
 static bool check_initialization(void) {
-	if (frame_buffer == NULL) {
+	if (!is_initialized)
 		PyErr_SetString(PyExc_RuntimeError, "The module has not been initialized");
-		return false;
-	}
-	return true;
+	return is_initialized;
 }
 
 static PyObject *init(PyObject *self, PyObject *args) {
-	if (frame_buffer != NULL) {
+	if (is_initialized) {
 		PyErr_SetString(PyExc_RuntimeError, "The module has already been initialized");
 		return NULL;
 	}
+	is_initialized = true;
+	SSD1331_begin();
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *display(PyObject *self, PyObject *args) {
+	if (!check_initialization())
+		return NULL;
+
+	PyArrayObject *frame_buffer;
 
 	PyObject *arg1 = NULL;
 	if (!PyArg_ParseTuple(args, "O", &arg1))
@@ -41,54 +50,38 @@ static PyObject *init(PyObject *self, PyObject *args) {
 
 	if (dims != 3) {
 		PyErr_SetString(PyExc_ValueError, "Wrong array dimensions. Expected a 3-dimensinoal array.");
+		Py_DECREF(frame_buffer);
 		return NULL;
 	}
 
 	if (shape[0] != OLED_HEIGHT || shape[1] != OLED_WIDTH || shape[2] != 3) {
 		PyErr_SetString(PyExc_ValueError, "Wrong shape of array.");
+		Py_DECREF(frame_buffer);
 		return NULL;
 	}
-
-	Py_INCREF(frame_buffer);
-	SSD1331_begin();
-
-	Py_RETURN_NONE;
-}
-
-static PyObject *display(PyObject *self, PyObject *args) {
-	if (!check_initialization())
-		return NULL;
 
 	uint8_t r, g, b;
 	for (int y=0; y < OLED_HEIGHT; y++) {
 		for (int x=0; x < OLED_WIDTH; x++) {
-			r = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0);
-			g = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1);
-			b = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2);
+			r = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0) + 0.5;
+			g = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1) + 0.5;
+			b = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2) + 0.5;
 			display_buffer[y * OLED_WIDTH + x] = PACK_RGB(r, g, b);
 		}
 	}
+
 	SSD1331_display(display_buffer);
 
+	Py_DECREF(frame_buffer);
 	Py_RETURN_NONE;
 }
 
 static PyObject *deinit(PyObject *self, PyObject *args) {
-	if (!check_initialization())
-		return NULL;
+	if (is_initialized)
+		SSD1331_end();
 
-	SSD1331_end();
-	Py_XDECREF(frame_buffer);
-	frame_buffer = NULL;
-
+	is_initialized = false;
 	Py_RETURN_NONE;
-}
-
-static PyObject *get_array(PyObject *self, PyObject *args) {
-	if (!check_initialization())
-		return NULL;
-
-	return (PyObject*) frame_buffer;
 }
 
 static PyObject *get_buffer(PyObject *self, PyObject *args) {
@@ -114,10 +107,9 @@ static PyObject *get_buffer(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef methods[] = {
-    {"init", init, METH_VARARGS, "Initializes memory and communication with the hardware"},
+    {"init", init, METH_NOARGS, "Initializes memory and communication with the hardware"},
     {"deinit", deinit, METH_NOARGS, "Releases the hardware and memory"},
-    {"get_array", get_array, METH_NOARGS, "Gets the Numpy C array that is used for the display"},
-    {"display", display, METH_NOARGS, "Refresh the display with the current image data"},
+    {"display", display, METH_VARARGS, "Refresh the display with the current image data"},
     {"get_buffer", get_buffer, METH_NOARGS, "Get the currently displayed buffer"},
     {NULL, NULL, 0, NULL}
 };
@@ -135,5 +127,6 @@ PyMODINIT_FUNC PyInit_liboled(void) {
     PyObject *module = PyModule_Create(&liboled_module);
     PyModule_AddIntMacro(module, OLED_HEIGHT);
     PyModule_AddIntMacro(module, OLED_WIDTH);
+    is_initialized = false;
     return module;
 }
