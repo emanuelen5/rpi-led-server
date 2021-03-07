@@ -63,12 +63,10 @@ static PyObject *display(PyObject *self, PyObject *args) {
 	uint8_t r, g, b;
 	for (int y=0; y < OLED_HEIGHT; y++) {
 		for (int x=0; x < OLED_WIDTH; x++) {
-			r = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0);
-			g = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1);
-			b = 256.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2);
+			r = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0) + 0.5;
+			g = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1) + 0.5;
+			b = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2) + 0.5;
 			display_buffer[y * OLED_WIDTH + x] = PACK_RGB(r, g, b);
-			if (x<5 && y==0)
-				fprintf(stderr, "display: [%d,%d] = (%d,%d,%d)\n", y, x, r, b, g);
 		}
 	}
 
@@ -102,8 +100,6 @@ static PyObject *get_buffer(PyObject *self, PyObject *args) {
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 0) = UNPACK_R(rgb);
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 1) = UNPACK_G(rgb);
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 2) = UNPACK_B(rgb);
-			if (x<5 && y==0)
-				fprintf(stderr, "get_buffer: [%d,%d] = (%d,%d,%d)\n", y, x, UNPACK_R(rgb), UNPACK_G(rgb), UNPACK_B(rgb));
 		}
 	}
 

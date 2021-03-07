@@ -12,12 +12,13 @@ class Display:
 
     def clear(self):
         self.buffer[:, :, :] = 0.0
-        self.display()
 
     def string(self, x, y, s: str, color=(1., 1., 1.)):
         cv2.putText(self.buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.25, color)
 
     def display(self):
+        self.buffer[self.buffer < 0] = 0
+        self.buffer[self.buffer > 1.0] = 1.0
         liboled.display(self.buffer)
 
     def open(self):

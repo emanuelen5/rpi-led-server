@@ -54,11 +54,22 @@ class TestSmoke(unittest.TestCase):
     def test_get_buffer(self):
         liboled.display(self.arr)
         arr = liboled.get_buffer()
-        expected_array = (self.arr * 256.).astype(np.uint8)
+        expected_array = (self.arr * 255. + 0.5).astype(np.uint8)
         expected_array[:, :, 0] = expected_array[:, :, 0] & 0xF8
         expected_array[:, :, 1] = expected_array[:, :, 1] & 0xFC
         expected_array[:, :, 2] = expected_array[:, :, 2] & 0xF8
         numpy.testing.assert_equal(expected_array, arr)
+
+    def test_does_not_overflow(self):
+        arr = np.ones_like(self.arr).astype(np.float32)
+        liboled.display(arr)
+        buffer = liboled.get_buffer()
+        expected_buffer = np.zeros_like(buffer)
+        expected_buffer[:, :, :] = 255
+        expected_buffer[:, :, 0] = expected_buffer[:, :, 0] & 0xF8
+        expected_buffer[:, :, 1] = expected_buffer[:, :, 1] & 0xFC
+        expected_buffer[:, :, 2] = expected_buffer[:, :, 2] & 0xF8
+        numpy.testing.assert_equal(expected_buffer, buffer)
 
     def test_display(self):
         liboled.display(self.arr)
