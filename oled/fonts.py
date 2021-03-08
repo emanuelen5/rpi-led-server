@@ -1,5 +1,5 @@
-from typing import Tuple, List
-from dataclasses import dataclass
+from typing import Tuple, List, Dict
+from dataclasses import dataclass, field
 import numpy as np
 
 
@@ -8,38 +8,43 @@ class Bitmap:
     width: int
     height: int
     pixels: List[int]
+    mask: np.ndarray = None
 
     def __post_init__(self):
         if self.width * self.height > len(self.pixels) * 8:
             raise ValueError(f"The bitmap height does not match the description "
                              f"{self.width * self.height} <= {len(self.pixels) * 8}")
 
-    def paste(self, img: np.ndarray, x: int, y: int,
-              fg: Tuple[float, float, float] = (1., 1., 1.),
-              bg: Tuple[float, float, float] = (0., 0., 0.)) -> np.ndarray:
+        # Precompute the mask from the bitmask constants
+        self.mask = np.zeros((self.height, self.width), dtype=np.bool8)
         for i in range(self.width):
             for j in range(self.height):
                 idx = i * ((self.height + 7) // 8) + (j // 8)
-                if (self.pixels[idx] << j % 8) & 0x80:
-                    color = fg
-                else:
-                    color = bg
+                self.mask[j, i] = (self.pixels[idx] << j % 8) & 0x80
 
-                yy = y + j
-                xx = x + i
-                if 0 <= xx < img.shape[1] and 0 <= yy < img.shape[0]:
-                    img[yy, xx, :] = color
+        self.offset_x, self.offset_y = np.meshgrid(range(self.width), range(self.height))
+
+    def paste(
+        self, img: np.ndarray, x: int, y: int,
+        fg: Tuple[float, float, float] = (1., 1., 1.),
+        bg: Tuple[float, float, float] = (0., 0., 0.)
+    ) -> np.ndarray:
+        img_y, img_x, img_z = img.shape
+        offset_x = self.offset_x + x
+        offset_y = self.offset_y + y
+        mask = np.logical_and(0 <= offset_x, offset_x < img_x)
+        mask = np.logical_and(mask, 0 <= offset_y)
+        mask = np.logical_and(mask, offset_y < img_y)
+        valid_mask = np.nonzero(mask)
+        fg_mask = self.mask[valid_mask]
+        bg_mask = ~fg_mask
+        offset_y = offset_y[valid_mask]
+        offset_x = offset_x[valid_mask]
+        sub_img = img[offset_y, offset_x]
+        sub_img[fg_mask] = fg
+        sub_img[bg_mask] = bg
+        img[offset_y, offset_x] = sub_img
         return img
-
-
-def get_char1206_bitmap(c: str):
-    if not isinstance(c, str):
-        raise TypeError("Must be string")
-    if len(c) != 1:
-        raise TypeError("Can only get one character at a time")
-    if c not in Font1206:
-        raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(6, 12, Font1206[c])
 
 
 Font1206 = {
@@ -141,16 +146,6 @@ Font1206 = {
 }
 
 
-def get_char1608_bitmap(c: str):
-    if not isinstance(c, str):
-        raise TypeError("Must be string")
-    if len(c) != 1:
-        raise TypeError("Can only get one character at a time")
-    if c not in Font1608:
-        raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(8, 16, Font1608[c])
-
-
 Font1608 = {
     " ": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
     "!": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0xCC, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
@@ -250,16 +245,6 @@ Font1608 = {
 }
 
 
-def get_char1612_bitmap(c: str):
-    if not isinstance(c, str):
-        raise TypeError("Must be string")
-    if len(c) != 1:
-        raise TypeError("Can only get one character at a time")
-    if c not in Font1612:
-        raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(12, 16, Font1612[c])
-
-
 Font1612 = {
     "0": [0x00, 0x00, 0x3F, 0xFC, 0x3F, 0xFC, 0x30, 0x0C, 0x30, 0x0C, 0x30, 0x0C, 0x30, 0x0C, 0x30, 0x0C,
           0x30, 0x0C, 0x30, 0x0C, 0x30, 0x0C, 0x30, 0x0C, 0x30, 0x0C, 0x3F, 0xFC, 0x3F, 0xFC, 0x00, 0x00],
@@ -284,16 +269,6 @@ Font1612 = {
     ":": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x30,
           0x18, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
 }
-
-
-def get_char3216_bitmap(c: str):
-    if not isinstance(c, str):
-        raise TypeError("Must be string")
-    if len(c) != 1:
-        raise TypeError("Can only get one character at a time")
-    if c not in Font3216:
-        raise ValueError(f"No bitmap defined for '{c}'")
-    return Bitmap(16, 32, Font3216[c])
 
 
 Font3216 = {
@@ -382,12 +357,44 @@ symbols = {
 }
 
 
-def stringify(img: np.ndarray, x: int, y: int, s: str,
-              fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.),
-              font=get_char1206_bitmap) -> np.ndarray:
-    img = img.copy()
+@dataclass
+class Font:
+    width: int
+    height: int
+    lookup: Dict[str, List[int]]
+    _bitmaps: Dict[str, Bitmap] = field(init=False)
+
+    def __post_init__(self):
+        self._bitmaps = {k: Bitmap(self.width, self.height, v) for k, v in self.lookup.items()}
+
+    def __getitem__(self, key: str):
+        if key not in self._bitmaps:
+            raise ValueError(f"The font {self} does not define the character '{key}'")
+        return self._bitmaps[key]
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.width}x{self.height}>"
+
+    def put_string(
+        self, img: np.ndarray, x: int, y: int, s: str,
+        fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.)
+    ) -> np.ndarray:
+        return put_string(img, x, y, s, fg, bg, self)
+
+
+Font1206 = Font(6, 12, Font1206)
+Font1608 = Font(8, 16, Font1608)
+Font1612 = Font(12, 16, Font1612)
+Font3216 = Font(16, 32, Font3216)
+
+
+def put_string(
+        img: np.ndarray, x: int, y: int, s: str,
+        fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.),
+        font: Font = Font1206
+    ) -> np.ndarray:
     for c in s:
-        bm = font(c)
+        bm = font[c]
         bm.paste(img, x, y, fg, bg)
         x += bm.width
     return img
