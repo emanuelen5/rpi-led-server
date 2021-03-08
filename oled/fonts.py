@@ -22,26 +22,28 @@ class Bitmap:
                 idx = i * ((self.height + 7) // 8) + (j // 8)
                 self.mask[j, i] = (self.pixels[idx] << j % 8) & 0x80
 
+        self.offset_x, self.offset_y = np.meshgrid(range(self.width), range(self.height))
+
     def paste(
         self, img: np.ndarray, x: int, y: int,
         fg: Tuple[float, float, float] = (1., 1., 1.),
         bg: Tuple[float, float, float] = (0., 0., 0.)
     ) -> np.ndarray:
         img_y, img_x, img_z = img.shape
-        for i, yi in enumerate(range(y, y + self.height)):
-            if yi < 0:
-                continue
-            elif yi >= img_y:
-                break
-            for j, xi in enumerate(range(x, x + self.width)):
-                if xi < 0:
-                    continue
-                elif xi >= img_x:
-                    break
-                if self.mask[i, j]:
-                    img[yi, xi] = fg
-                else:
-                    img[yi, xi] = bg
+        offset_x = self.offset_x + x
+        offset_y = self.offset_y + y
+        mask = np.logical_and(0 <= offset_x, offset_x < img_x)
+        mask = np.logical_and(mask, 0 <= offset_y)
+        mask = np.logical_and(mask, offset_y < img_y)
+        valid_mask = np.nonzero(mask)
+        fg_mask = self.mask[valid_mask]
+        bg_mask = ~fg_mask
+        offset_y = offset_y[valid_mask]
+        offset_x = offset_x[valid_mask]
+        sub_img = img[offset_y, offset_x]
+        sub_img[fg_mask] = fg
+        sub_img[bg_mask] = bg
+        img[offset_y, offset_x] = sub_img
         return img
 
 
