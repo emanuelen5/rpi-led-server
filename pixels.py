@@ -1,5 +1,4 @@
 # Simple test for NeoPixels on Raspberry Pi
-import time
 import board
 import neopixel
 import time
@@ -76,4 +75,3 @@ while True:
     time.sleep(1)
 
     rainbow_cycle(0.001, 5)  # rainbow cycle with 1ms delay per step
-

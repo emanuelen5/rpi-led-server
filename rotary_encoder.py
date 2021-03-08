@@ -1,16 +1,18 @@
 from RPi import GPIO
 from time import sleep
 from enum import IntEnum
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from logging import getLogger, basicConfig, INFO
 
 logger = getLogger(__name__)
 basicConfig(format='%(levelname)s:%(message)s', level=INFO)
 
+
 class PINS(IntEnum):
     CLK = 5
     DT = 6
     BTN = 13
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PINS.CLK, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -20,7 +22,7 @@ GPIO.setup(PINS.BTN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 @dataclass
 class RotaryEncoder:
-    counter : int = 0
+    counter: int = 0
 
     def __post_init__(self):
         self.last_clk_state = self.clk_state = GPIO.input(PINS.CLK)
