@@ -1,5 +1,5 @@
-from typing import Tuple, List
-from dataclasses import dataclass
+from typing import Tuple, List, Dict
+from dataclasses import dataclass, field
 import numpy as np
 
 
@@ -355,19 +355,42 @@ symbols = {
 }
 
 
-Font1206 = {k: Bitmap(6, 12, v) for k, v in Font1206.items()}
-Font1608 = {k: Bitmap(8, 16, v) for k, v in Font1608.items()}
-Font1612 = {k: Bitmap(12, 16, v) for k, v in Font1612.items()}
-Font3216 = {k: Bitmap(16, 32, v) for k, v in Font3216.items()}
+@dataclass
+class Font:
+    width: int
+    height: int
+    lookup: Dict[str, List[int]]
+    _bitmaps: Dict[str, Bitmap] = field(init=False)
+
+    def __post_init__(self):
+        self._bitmaps = {k: Bitmap(self.width, self.height, v) for k, v in self.lookup.items()}
+
+    def __getitem__(self, key: str):
+        if key not in self._bitmaps:
+            raise ValueError(f"The font {self} does not define the character '{key}'")
+        return self._bitmaps[key]
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.width}x{self.height}>"
+
+    def put_string(
+        self, img: np.ndarray, x: int, y: int, s: str,
+        fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.)
+    ) -> np.ndarray:
+        return put_string(img, x, y, s, fg, bg, self)
+
+
+Font1206 = Font(6, 12, Font1206)
+Font1608 = Font(8, 16, Font1608)
+Font1612 = Font(12, 16, Font1612)
+Font3216 = Font(16, 32, Font3216)
 
 
 def put_string(
         img: np.ndarray, x: int, y: int, s: str,
         fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.),
-        font=None
+        font: Font = Font1206
     ) -> np.ndarray:
-    if font is None:
-        font = Font1206
     for c in s:
         bm = font[c]
         bm.paste(img, x, y, fg, bg)
