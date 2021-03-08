@@ -11,6 +11,10 @@ render_times = []
 def print_mean_time():
     print("Render times:")
     print(f" - samples: {len(render_times)}")
+
+    if len(render_times) == 0:
+        return
+
     print(f" -    mean: {np.mean(render_times) * 1000:6.4f} ms")
     print(f" -     min: {np.min(render_times) * 1000:6.4f} ms")
     print(f" -     std: {np.std(render_times) * 1000:6.4f} ms")

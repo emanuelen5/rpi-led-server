@@ -31,12 +31,12 @@ class Bitmap:
         for i, yi in enumerate(range(y, y + self.height)):
             if yi < 0:
                 continue
-            elif yi > img_y:
+            elif yi >= img_y:
                 break
             for j, xi in enumerate(range(x, x + self.width)):
                 if xi < 0:
                     continue
-                elif xi > img_x:
+                elif xi >= img_x:
                     break
                 if self.mask[i, j]:
                     img[yi, xi] = fg
