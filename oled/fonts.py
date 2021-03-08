@@ -382,10 +382,9 @@ symbols = {
 }
 
 
-def stringify(img: np.ndarray, x: int, y: int, s: str,
+def put_string(img: np.ndarray, x: int, y: int, s: str,
               fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.),
               font=get_char1206_bitmap) -> np.ndarray:
-    img = img.copy()
     for c in s:
         bm = font(c)
         bm.paste(img, x, y, fg, bg)
