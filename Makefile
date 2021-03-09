@@ -18,5 +18,5 @@ init:
 	pip install -r requirements-dev.txt -r requirements.txt
 
 clean:
-	rm -fv liboled*.so
+	rm -fv liboled*.{so,pyd}
 	rm -rf build

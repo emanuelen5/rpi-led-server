@@ -4,6 +4,8 @@ CPUINFO_PATH = Path("/proc/cpuinfo")
 
 
 def is_raspberry_pi():
+    if not CPUINFO_PATH.exists():
+        return False
     with open(CPUINFO_PATH) as f:
         for line in f:
             fields = [f.strip() for f in line.split(":")]
