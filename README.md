@@ -27,7 +27,33 @@ This project will serve as an LED server that connects to external services thro
 ### Assembled prototype
 ![Assembled protoype header](doc/prototype-assembled.jpg)
 
-## Application
+## [Application](./doc/application.md)
 
 * **Display (controlled through Python C interface) that shows the current status**
 * **Flask server (coming) that reacts to web requests**
+
+## Installation
+
+### Requirements
+* Python 3.8
+
+### Installation steps
+```bash
+# Install dependencies
+make init
+
+# Build the C-library 
+make liboled
+```
+
+### Run tests
+```bash
+make all # This both builds and runs all tests
+```
+
+### Run the applications
+```bash
+python drawoled.py # Draws some test strings
+python rotary_encoder.py # Reacts to twisting and button presses
+python pixels.py # Runs a color wheel on the LEDs
+```
