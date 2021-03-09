@@ -31,8 +31,9 @@ class Display:
 
 @dataclass
 class OpenCVDisplay(Display):
-    displayed: bool = False
     scaling: float = 6.0
+    displayed: bool = field(init=False, default=False, repr=False)
+    rendered_buffer: np.ndarray = field(init=False, default=None, repr=False)
 
     def __post_init__(self):
         # Pre-compute grid
@@ -52,6 +53,7 @@ class OpenCVDisplay(Display):
         buffer[self.grid] = 0.1 + buffer[self.grid] * 0.9
         # Make border
         buffer = cv2.copyMakeBorder(buffer, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=(1., 1., 1.))
+        self.rendered_buffer = buffer
         cv2.imshow("OLED_Display", buffer)
         if not self.displayed:
             self.displayed = True

@@ -3,23 +3,31 @@
 # Raspberry Pi LED server
 This project will serve as an LED server that connects to external services through Ethernet and fetches data which can then be shown through the means of an LED light show.
 
-## Hardware
-* Raspberry Pi
-* Neopixels
-* A 96x64 pixel color SSD1331 OLED screen (for showing current LED mode and IP)
-* Rotary Encoder (for setting brightness and changing LED mode)
+## [Hardware](./doc/hardware.md)
 
-## Prototype
-The hardware prototype is done as a Fritzing design. I designed two custom parts in Inkscape for the *rotary encoder* and the *SSD1331 OLED screen*.
+* **Raspberry Pi**
+  
+  The compute platform
+
+* **RGB LEDs**
+  
+  For displaying notifications
+
+* **SSD1331 OLED screen**
+  
+  For showing current LED mode and IP
+
+* **Rotary Encoder**
+  
+  For setting brightness and changing LED mode
 
 ### Fritzing model
-![Fritzing breadboard design](fritzing/rpi-leds-and-screen_bb.png)
+![Fritzing breadboard design](doc/rpi-leds-and-screen_bb.png)
 
-### After assembly
-I used female headers for three things:
+### Assembled prototype
+![Assembled protoype header](doc/prototype-assembled.jpg)
 
-* Connecting to the Rasperry Pi male header
-* Connecting to the breakout modules (rotary encoder and OLED)
-* Giving mechanical support underneath the button (so that the board doesn't flex too much when the button is pressed)
+## Application
 
-![Assembled protoype header](fritzing/prototype-assembled.jpg)
+* **Display (controlled through Python C interface) that shows the current status**
+* **Flask server (coming) that reacts to web requests**

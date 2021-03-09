@@ -1,6 +1,7 @@
 from oled import OLED
 from datetime import datetime
 from oled.fonts import put_string
+import cv2
 
 
 def main():
@@ -12,6 +13,9 @@ def main():
             put_string(display.buffer, 0, 16, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
             put_string(display.buffer, 0, 36, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
             display.display()
+            break
+
+        cv2.imwrite("opencv-model.png", display.rendered_buffer * 255)
 
 
 if __name__ == "__main__":
