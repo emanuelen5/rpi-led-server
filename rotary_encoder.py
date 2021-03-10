@@ -1,4 +1,4 @@
-from RPi import GPIO
+from rpi import GPIO
 from time import sleep
 from enum import IntEnum
 from dataclasses import dataclass
@@ -14,17 +14,16 @@ class PINS(IntEnum):
     BTN = 13
 
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(PINS.CLK, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(PINS.DT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(PINS.BTN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-
 @dataclass
 class RotaryEncoder:
     counter: int = 0
 
     def __post_init__(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(PINS.CLK, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(PINS.DT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(PINS.BTN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
         self.last_clk_state = self.clk_state = GPIO.input(PINS.CLK)
         self.dt_state = GPIO.input(PINS.DT)
 
@@ -60,12 +59,17 @@ class RotaryEncoder:
             logger.debug(f"{pin} - falling")
 
 
-rot_enc = RotaryEncoder()
+def main():
+    rot_enc = RotaryEncoder()
 
-try:
-    while True:
-        sleep(0.01)
-except KeyboardInterrupt:
-    pass
-finally:
-    GPIO.cleanup()
+    try:
+        while True:
+            sleep(0.01)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        GPIO.cleanup()
+
+
+if __name__ == "__main__":
+    main()
