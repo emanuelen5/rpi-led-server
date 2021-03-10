@@ -1,5 +1,4 @@
 import unittest
-
 from rotary_encoder import RotaryEncoder, PINS
 
 
