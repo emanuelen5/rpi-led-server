@@ -6,8 +6,6 @@ from typing import List, Callable
 from logging import getLogger, basicConfig, INFO
 
 logger = getLogger(__name__)
-basicConfig(format='%(levelname)s:%(message)s', level=INFO)
-
 
 class PINS(IntEnum):
     CLK = 5
@@ -71,11 +69,12 @@ class RotaryEncoder:
         else:
             logger.debug(f"{pin} - falling")
 
-        for cb in self.cb_press:
-            cb()
+            for cb in self.cb_press:
+                cb()
 
 
 def main():
+    basicConfig(format='%(levelname)s:%(message)s', level=INFO)
     rot_enc = RotaryEncoder()
 
     try:
