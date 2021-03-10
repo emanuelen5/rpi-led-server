@@ -7,6 +7,7 @@ from logging import getLogger, basicConfig, INFO
 
 logger = getLogger(__name__)
 
+
 class PINS(IntEnum):
     CLK = 5
     DT = 6
@@ -75,7 +76,7 @@ class RotaryEncoder:
 
 def main():
     basicConfig(format='%(levelname)s:%(message)s', level=INFO)
-    rot_enc = RotaryEncoder()
+    _ = RotaryEncoder()
 
     try:
         while True:

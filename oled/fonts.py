@@ -392,7 +392,7 @@ def put_string(
         img: np.ndarray, x: int, y: int, s: str,
         font: Font = Font1206,
         *args, **kwargs
-    ) -> np.ndarray:
+) -> np.ndarray:
     for c in s:
         bm = font[c]
         bm.paste(img, x, y, *args, **kwargs)
