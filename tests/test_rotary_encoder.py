@@ -43,14 +43,16 @@ class TestCallbacks(BaseTestRotaryEncoder):
         self.rotenc.register_press_callback(self.cb_press)
 
     def test_calls_rotate_callback_on_cw(self):
-        self.set_pin(PINS.CLK, True)
         self.set_pin(PINS.DT, False)
+        self.rotenc.rotation_callback(PINS.DT)
+        self.set_pin(PINS.CLK, True)
         self.rotenc.rotation_callback(PINS.CLK)
         self.cb_rotation.assert_called_once_with(True)
 
     def test_calls_rotate_callback_on_ccw(self):
-        self.set_pin(PINS.CLK, True)
         self.set_pin(PINS.DT, True)
+        self.rotenc.rotation_callback(PINS.DT)
+        self.set_pin(PINS.CLK, True)
         self.rotenc.rotation_callback(PINS.CLK)
         self.cb_rotation.assert_called_once_with(False)
 
