@@ -34,14 +34,36 @@ class BaseTestRotaryEncoder(BaseGPIO_Test):
         self.rotenc.rotation_callback(PINS.CLK)
 
 
-class TestSmoke(BaseTestRotaryEncoder):
-    def test_calls_rotate_callback_on_clockwise(self):
-        cb = MagicMock()
-        self.rotenc.register_rotation_callback(cb)
+class TestCallbacks(BaseTestRotaryEncoder):
+    def setUp(self) -> None:
+        super().setUp()
+        self.cb_rotation = MagicMock()
+        self.rotenc.register_rotation_callback(self.cb_rotation)
+        self.cb_press = MagicMock()
+        self.rotenc.register_press_callback(self.cb_press)
 
+    def test_calls_rotate_callback_on_cw(self):
         self.set_pin(PINS.CLK, True)
+        self.set_pin(PINS.DT, False)
         self.rotenc.rotation_callback(PINS.CLK)
-        cb.assert_called_with(True)
+        self.cb_rotation.assert_called_once_with(True)
+
+    def test_calls_rotate_callback_on_ccw(self):
+        self.set_pin(PINS.CLK, True)
+        self.set_pin(PINS.DT, True)
+        self.rotenc.rotation_callback(PINS.CLK)
+        self.cb_rotation.assert_called_once_with(False)
+
+    def test_press_down_runs_cb(self):
+        self.set_pin(PINS.BTN, False)
+        self.rotenc.button_callback(PINS.BTN)
+        self.cb_press.assert_called_once_with()
+
+    def test_press_release_doesnt_run_cb(self):
+        self.set_pin(PINS.BTN, True)
+        self.rotenc.button_callback(PINS.BTN)
+        self.cb_press.assert_not_called()
+
 
 
 if __name__ == '__main__':
