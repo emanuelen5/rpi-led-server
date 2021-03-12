@@ -64,7 +64,9 @@ DOWN_ARROW = 65364
 
 def main():
     rot = RotatyEncoderHW_Model(1, 2, 3)
-    while (k := cv2.waitKeyEx(1)) != ord("q"):
+    k = None
+    while k != ord("q"):
+        k = cv2.waitKeyEx(1)
         if k == LEFT_ARROW:
             rot.rotate(False)
         elif k == RIGHT_ARROW:
