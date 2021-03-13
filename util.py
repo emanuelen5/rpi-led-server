@@ -6,3 +6,6 @@ class KeyCode(IntEnum):
     LEFT_ARROW = 65361
     UP_ARROW = 65362
     DOWN_ARROW = 65364
+
+    def __repr__(self):
+        return self.name

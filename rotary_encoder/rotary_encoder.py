@@ -1,16 +1,16 @@
-from rpi import GPIO, is_raspberry_pi
+from rpi import GPIO
 from util import KeyCode
 from time import sleep
 from enum import IntEnum
 from dataclasses import dataclass, field
 from typing import List, Callable
-from logging import getLogger, basicConfig, INFO
+import logging
 import cv2
 import numpy as np
 import math
 import time
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class PINS(IntEnum):
@@ -96,7 +96,7 @@ class RotaryEncoder(RotaryEncoderBase):
 
 
 @dataclass
-class RotatyEncoderMock(RotaryEncoderBase):
+class RotaryEncoderMock(RotaryEncoderBase):
     steps: int = 15
     pressed: bool = False
     pressed_time: float = field(repr=False, init=False, default=0)
@@ -105,10 +105,16 @@ class RotatyEncoderMock(RotaryEncoderBase):
     def __post_init__(self):
         self.rotation = 0
         self.rotation_per_step = 2 * math.pi / self.steps
+        self._timeout = self.timeout
 
     def press(self):
         self.pressed = True
         self.pressed_time = time.time()
+        self._timeout = self.timeout
+
+    def press_toggle(self):
+        self.pressed = not self.pressed
+        self._timeout = float("inf")
 
     def rotate(self, clockwise: bool):
         self.rotation += 1 if clockwise else -1
@@ -116,7 +122,7 @@ class RotatyEncoderMock(RotaryEncoderBase):
     def refresh(self):
         disp = np.zeros((200, 200, 3), dtype=np.uint8)
         radius = 40 if self.pressed else 50
-        if self.pressed and time.time() - self.pressed_time > self.timeout:
+        if self.pressed and time.time() - self.pressed_time > self._timeout:
             self.pressed = False
         rotation = self.rotation * self.rotation_per_step
         pt2 = np.array([100, 100]) + np.array([math.sin(rotation), -math.cos(rotation)]) * radius
@@ -127,6 +133,7 @@ class RotatyEncoderMock(RotaryEncoderBase):
     @classmethod
     def main(cls):
         rot = cls()
+        print(f"Use the arrow keys: {list(KeyCode)} to rotate and press the rotary encoder.")
         k = None
         while k != ord("q"):
             k = cv2.waitKeyEx(1)
@@ -136,17 +143,6 @@ class RotatyEncoderMock(RotaryEncoderBase):
                 rot.rotate(True)
             elif k == KeyCode.DOWN_ARROW:
                 rot.press()
+            elif k == KeyCode.UP_ARROW:
+                rot.press_toggle()
             rot.refresh()
-
-
-def main():
-    basicConfig(format='%(levelname)s:%(message)s', level=INFO)
-    if is_raspberry_pi():
-        rot = RotaryEncoder()
-    else:
-        rot = RotatyEncoderMock()
-    rot.main()
-
-
-if __name__ == "__main__":
-    main()

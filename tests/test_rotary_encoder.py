@@ -1,5 +1,6 @@
 import unittest
-from rotary_encoder import RotaryEncoder, PINS, GPIO
+from rpi import GPIO
+from rotary_encoder.rotary_encoder import RotaryEncoder, PINS
 from unittest.mock import MagicMock, patch
 
 
