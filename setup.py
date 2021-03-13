@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 import numpy
-from util import is_raspberry_pi
+from rpi import is_raspberry_pi
 
 if is_raspberry_pi():
     module = Extension(

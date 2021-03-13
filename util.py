@@ -1,15 +1,8 @@
-from pathlib import Path
-
-CPUINFO_PATH = Path("/proc/cpuinfo")
+from enum import IntEnum
 
 
-def is_raspberry_pi():
-    if not CPUINFO_PATH.exists():
-        return False
-    with open(CPUINFO_PATH) as f:
-        for line in f:
-            fields = [f.strip() for f in line.split(":")]
-            if fields[0] == "Model":
-                return "raspberry pi" in fields[1].lower()
-        return False
-        # raise ValueError("Could not determine if it is a Raspberry Pi")
+class KeyCode(IntEnum):
+    RIGHT_ARROW = 65363
+    LEFT_ARROW = 65361
+    UP_ARROW = 65362
+    DOWN_ARROW = 65364
