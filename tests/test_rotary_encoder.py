@@ -67,6 +67,5 @@ class TestCallbacks(BaseTestRotaryEncoder):
         self.cb_press.assert_not_called()
 
 
-
 if __name__ == '__main__':
     unittest.main()

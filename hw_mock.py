@@ -33,7 +33,7 @@ class RotatyEncoderHW_Model:
         if pin in self._pin_callbacks:
             self._pin_callbacks[pin].append(callback)
         else:
-            logger.warning(f"Callback for unrelated pin will not be registered")
+            logger.warning("Callback for unrelated pin will not be registered")
 
     def press(self):
         self.pressed = True
@@ -65,9 +65,12 @@ class RotatyEncoderHW_Model:
         cv2.line(disp, (100, 100), tuple(pt2.astype(np.int16)), (123, 50, 168), thickness=3, lineType=cv2.LINE_AA)
         cv2.circle(disp, (100, 100), radius, (255, 255, 255), thickness=5, lineType=cv2.LINE_AA)
 
-        cv2.putText(disp, "CLK: " + str(self._pin_values[self.PIN_CLK]), (5, 20), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
-        cv2.putText(disp, "DT: " + str(self._pin_values[self.PIN_DT]), (5, 40), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
-        cv2.putText(disp, "BTN: " + str(self._pin_values[self.PIN_BTN]), (5, 60), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
+        cv2.putText(disp, "CLK: " + str(self._pin_values[self.PIN_CLK]), (5, 20), cv2.FONT_HERSHEY_PLAIN, 1,
+                    (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
+        cv2.putText(disp, "DT: " + str(self._pin_values[self.PIN_DT]), (5, 40), cv2.FONT_HERSHEY_PLAIN, 1,
+                    (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
+        cv2.putText(disp, "BTN: " + str(self._pin_values[self.PIN_BTN]), (5, 60), cv2.FONT_HERSHEY_PLAIN, 1,
+                    (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
         cv2.imshow("rotary_encoder_hw", disp)
 
 
