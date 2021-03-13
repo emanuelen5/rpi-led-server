@@ -19,7 +19,6 @@ class PINS(IntEnum):
     BTN = 13
 
 
-@dataclass
 class RotaryEncoderBase:
     cb_rotation: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
     cb_press: List[Callable[[], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
@@ -32,7 +31,7 @@ class RotaryEncoderBase:
 
 
 @dataclass
-class RotaryEncoder(RotaryEncoderBase):
+class RotaryEncoderModel(RotaryEncoderBase):
     counter: int = field(default=0, compare=False)
     dt_state: bool = None
     cb_rotation: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
@@ -96,7 +95,7 @@ class RotaryEncoder(RotaryEncoderBase):
 
 
 @dataclass
-class RotaryEncoderMock(RotaryEncoderBase):
+class RotaryEncoderView(RotaryEncoderBase):
     steps: int = 15
     pressed: bool = False
     pressed_time: float = field(repr=False, init=False, default=0)
@@ -136,7 +135,6 @@ class RotaryEncoderMock(RotaryEncoderBase):
         print(f"Use the arrow keys: {list(KeyCode)} to rotate and press the rotary encoder.")
         k = None
         while k != ord("q"):
-            k = cv2.waitKeyEx(1)
             if k == KeyCode.LEFT_ARROW:
                 rot.rotate(False)
             elif k == KeyCode.RIGHT_ARROW:
@@ -146,3 +144,4 @@ class RotaryEncoderMock(RotaryEncoderBase):
             elif k == KeyCode.UP_ARROW:
                 rot.press_toggle()
             rot.refresh()
+            k = cv2.waitKeyEx(1)

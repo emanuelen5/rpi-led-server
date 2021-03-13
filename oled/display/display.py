@@ -2,11 +2,10 @@ import numpy as np
 import cv2
 from dataclasses import dataclass, field
 import liboled
-import sys
 
 
 @dataclass
-class Display:
+class DisplayModel:
     buffer: np.ndarray = field(
         default_factory=lambda: np.zeros((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3), dtype=np.float32))
 
@@ -16,7 +15,7 @@ class Display:
     def string(self, x, y, s: str, color=(1., 1., 1.)):
         cv2.putText(self.buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.25, color)
 
-    def display(self):
+    def refresh(self):
         self.buffer[self.buffer < 0] = 0
         self.buffer[self.buffer > 1.0] = 1.0
         liboled.display(self.buffer)
@@ -30,9 +29,8 @@ class Display:
 
 
 @dataclass
-class OpenCVDisplay(Display):
+class DisplayModelView(DisplayModel):
     scaling: float = 6.0
-    displayed: bool = field(init=False, default=False, repr=False)
     rendered_buffer: np.ndarray = field(init=False, default=None, repr=False)
 
     def __post_init__(self):
@@ -42,8 +40,8 @@ class OpenCVDisplay(Display):
         X, Y, _ = np.meshgrid(range(x), range(y), range(z))
         self.grid = (Y % self.scaling == self.scaling - 1) | (X % self.scaling == self.scaling - 1)
 
-    def display(self):
-        super().display()
+    def refresh(self):
+        super().refresh()
         buffer = liboled.get_buffer().astype(np.float32)
         buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
         buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
@@ -55,8 +53,3 @@ class OpenCVDisplay(Display):
         buffer = cv2.copyMakeBorder(buffer, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=(1., 1., 1.))
         self.rendered_buffer = buffer
         cv2.imshow("OLED_Display", buffer)
-        if not self.displayed:
-            self.displayed = True
-            print("Press q to exit")
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            sys.exit(0)
