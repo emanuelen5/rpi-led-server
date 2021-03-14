@@ -55,5 +55,5 @@ make all # This both builds and runs all tests
 ```bash
 python main_oled.py # Draws some test strings
 python rotary_encoder.py # Reacts to twisting and button presses
-python pixels.py # Runs a color wheel on the LEDs
+python main_leds.py # Runs a color wheel on the LEDs
 ```

@@ -67,5 +67,6 @@ class TestCallbacks(BaseTestRotaryEncoder):
         self.rotenc.button_callback(PINS.BTN)
         self.cb_press.assert_not_called()
 
+
 if __name__ == '__main__':
     unittest.main()
