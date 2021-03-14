@@ -20,12 +20,9 @@ class LED_Model(PixelBuf):
         return self.pixel_count
 
     def __getitem__(self, item: int):
-        assert 0 <= item < self.pixel_count
         return self.buffer[item]
 
     def __setitem__(self, key: int, value: ND_LIKE):
-        assert isinstance(key, int)
-        assert 0 <= key < self.pixel_count
         self.buffer[key] = value
 
     def __iter__(self):
@@ -44,16 +41,18 @@ class LED_ModelView(LED_Model):
     brightness: float = 1.0
     scale: Tuple[int, int] = (6, 6)
 
+    def __post_init__(self):
+        super().__post_init__()
+        self.frame_buffer = np.zeros((self.scale[0], self.scale[1] * self.pixel_count, 3), dtype=np.float32)
+
     def show(self):
         self.refresh()
 
     def refresh(self):
-        disp = np.zeros((self.scale[0], self.scale[1] * len(self.buffer), 3), dtype=np.float32)
         for i in range(len(self)):
-            px = self[i]
-            disp[:, i*self.scale[1]:(i+1)*self.scale[1]] = px
-        disp *= self.brightness
-        cv2.imshow("led_view", disp / 255)
+            self.frame_buffer[:, i*self.scale[1]:(i+1)*self.scale[1]] = self[i]
+        self.frame_buffer *= self.brightness
+        cv2.imshow("led_view", self.frame_buffer / 255)
 
 
 def create_pixels(num_pixels: int = 50, brightness: float = 1.0, scale: Tuple[int, int] = (200, 20), *args, **kwargs):
