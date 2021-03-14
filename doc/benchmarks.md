@@ -9,7 +9,7 @@ $ pip install gprof2dot
 
 Using basic profiling:
 ```bash
-$ python -m cProfile -o profile.dat drawoled.py
+$ python -m cProfile -o profile.dat main_oled.py
 $ gprof2dot -f pstats profile.dat | dot -Tpng | display
 ```
 

@@ -53,7 +53,7 @@ make all # This both builds and runs all tests
 
 ### Run the applications
 ```bash
-python drawoled.py # Draws some test strings
+python main_oled.py # Draws some test strings
 python rotary_encoder.py # Reacts to twisting and button presses
 python pixels.py # Runs a color wheel on the LEDs
 ```
