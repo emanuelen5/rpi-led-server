@@ -1,28 +1,19 @@
-# Simple test for NeoPixels on Raspberry Pi
-import board
-import neopixel
 import time
 from argparse import ArgumentParser
+from leds import create_pixels
+import sys
+import cv2
 
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
+parser.add_argument("--gui", "-g", action="store_true", help="Show a visual representation of the LEDs")
 args = parser.parse_args()
-
-
-# Choose an open pin connected to the Data In of the NeoPixel strip, i.e. board.D18
-# NeoPixels must be connected to D10, D12, D18 or D21 to work.
-pixel_pin = board.D18
 
 # The number of NeoPixels
 num_pixels = args.pixel_count
+show_gui = args.gui
 
-# The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
-# For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
-ORDER = neopixel.GRB
-
-pixels = neopixel.NeoPixel(
-    pixel_pin, num_pixels, brightness=0.1, auto_write=False, pixel_order=ORDER
-)
+pixels = create_pixels(num_pixels=50, brightness=0.1, scale=6.0)
 
 
 def wheel(pos):
@@ -44,7 +35,7 @@ def wheel(pos):
         r = 0
         g = int(pos * 3)
         b = int(255 - pos * 3)
-    return (r, g, b) if ORDER in (neopixel.RGB, neopixel.GRB) else (r, g, b, 0)
+    return r, g, b
 
 
 def rainbow_cycle(wait, duration=1.0):
@@ -58,13 +49,16 @@ def rainbow_cycle(wait, duration=1.0):
             time.sleep(wait)
 
 
+k = None
 while True:
     # Comment this line out if you have RGBW/GRBW NeoPixels
+    print("Fill 1")
     pixels.fill((255, 0, 0))
     pixels.show()
     time.sleep(1)
 
     # Comment this line out if you have RGBW/GRBW NeoPixels
+    print("Fill 2")
     pixels.fill((0, 255, 0))
     pixels.show()
     time.sleep(1)
@@ -75,3 +69,7 @@ while True:
     time.sleep(1)
 
     rainbow_cycle(0.001, 5)  # rainbow cycle with 1ms delay per step
+
+    k = cv2.waitKeyEx(1)
+    if k == ord('q'):
+        sys.exit(0)
