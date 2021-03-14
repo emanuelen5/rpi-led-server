@@ -42,19 +42,19 @@ class LED_Model(PixelBuf):
 @dataclass
 class LED_ModelView(LED_Model):
     brightness: float = 1.0
-    scale: float = 1.0
+    scale: Tuple[int, int] = (6, 6)
 
     def show(self):
         self.refresh()
 
     def refresh(self):
-        disp = np.zeros((int(self.scale), int(self.scale * len(self.buffer)), 3), dtype=np.float32)
+        disp = np.zeros((self.scale[0], self.scale[1] * len(self.buffer), 3), dtype=np.float32)
         for i in range(len(self)):
             px = self[i]
-            disp[:, int(i*self.scale):int((i+1)*self.scale)] = px
+            disp[:, i*self.scale[1]:(i+1)*self.scale[1]] = px
         disp *= self.brightness
-        cv2.imshow("led_view", disp)
+        cv2.imshow("led_view", disp / 255)
 
 
-def create_pixels(num_pixels: int = 50, brightness: float = 0.1, scale: float = 6, *args, **kwargs):
+def create_pixels(num_pixels: int = 50, brightness: float = 1.0, scale: Tuple[int, int] = (200, 20), *args, **kwargs):
     return LED_ModelView(num_pixels, brightness=brightness, scale=scale)
