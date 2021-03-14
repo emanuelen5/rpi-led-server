@@ -45,7 +45,9 @@ class LED_ModelView(LED_Model):
         self.refresh()
 
     def refresh(self):
-        frame_buffer = cv2.resize(self.buffer.reshape((1, self.pixel_count, 3)), dsize=None, fx=self.scale[1], fy=self.scale[0], interpolation=cv2.INTER_NEAREST)
+        frame_buffer = cv2.resize(
+            self.buffer.reshape((1, self.pixel_count, 3)), dsize=None,
+            fx=self.scale[1], fy=self.scale[0], interpolation=cv2.INTER_NEAREST)
         cv2.imshow("led_view", self.brightness / 255.0 * frame_buffer)
 
 
