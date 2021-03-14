@@ -41,18 +41,12 @@ class LED_ModelView(LED_Model):
     brightness: float = 1.0
     scale: Tuple[int, int] = (6, 6)
 
-    def __post_init__(self):
-        super().__post_init__()
-        self.frame_buffer = np.zeros((self.scale[0], self.scale[1] * self.pixel_count, 3), dtype=np.float32)
-
     def show(self):
         self.refresh()
 
     def refresh(self):
-        for i in range(len(self)):
-            self.frame_buffer[:, i*self.scale[1]:(i+1)*self.scale[1]] = self[i]
-        self.frame_buffer *= self.brightness
-        cv2.imshow("led_view", self.frame_buffer / 255)
+        frame_buffer = cv2.resize(self.buffer.reshape((1, self.pixel_count, 3)), dsize=None, fx=self.scale[1], fy=self.scale[0], interpolation=cv2.INTER_NEAREST)
+        cv2.imshow("led_view", self.brightness / 255.0 * frame_buffer)
 
 
 def create_pixels(num_pixels: int = 50, brightness: float = 1.0, scale: Tuple[int, int] = (200, 20), *args, **kwargs):
