@@ -7,6 +7,7 @@ from leds.color import rainbow_cycle
 from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
 from threading import Thread
+from util import KeyCode
 import time
 import cv2
 import numpy as np
@@ -31,6 +32,9 @@ class Globals:
     buffer_oled: np.ndarray = np.empty((1, 1, 1))
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
     buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
+    keypress_rotenc = []
+    keypress_oled = []
+    keypress_leds = []
 
 
 def main_display():
@@ -62,9 +66,18 @@ def main_leds():
 
 
 def main_rotenc():
+    rotenc = RotaryEncoder()
     while Globals.running:
-        print("Main ROTENC")
-        RotaryEncoder().main()
+        k = Globals.keypress_rotenc.pop() if len(Globals.keypress_rotenc) else -1
+        if k in (KeyCode.LEFT_ARROW, ord('h')):
+            rotenc.rotate(False)
+        elif k in (KeyCode.RIGHT_ARROW, ord('l')):
+            rotenc.rotate(True)
+        elif k in (KeyCode.DOWN_ARROW, ord('j')):
+            rotenc.press()
+        elif k in (KeyCode.UP_ARROW, ord('k')):
+            rotenc.press_toggle()
+        Globals.buffer_rotenc = rotenc.render()
 
 
 print("Press q to exit")
@@ -72,7 +85,8 @@ print("Press q to exit")
 t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
-for t in (t2, ):
+threads = (t1, t2, t3)
+for t in (t2, t3):
     t.start()
 
 while True:
@@ -80,5 +94,12 @@ while True:
     if k == ord('q'):
         Globals.running = False
         break
+    else:
+        Globals.keypress_rotenc.append(k)
+        Globals.keypress_oled.append(k)
+        Globals.keypress_leds.append(k)
     cv2.imshow("OLED_DISPLAY", Globals.buffer_oled)
+    cv2.imshow("ROTARY_ENCODER", Globals.buffer_rotenc)
+
+
 

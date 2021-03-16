@@ -118,7 +118,7 @@ class RotaryEncoderView(RotaryEncoderBase):
     def rotate(self, clockwise: bool):
         self.rotation += 1 if clockwise else -1
 
-    def refresh(self):
+    def render(self) -> np.ndarray:
         disp = np.zeros((200, 200, 3), dtype=np.uint8)
         radius = 40 if self.pressed else 50
         if self.pressed and time.time() - self.pressed_time > self._timeout:
@@ -127,7 +127,7 @@ class RotaryEncoderView(RotaryEncoderBase):
         pt2 = np.array([100, 100]) + np.array([math.sin(rotation), -math.cos(rotation)]) * radius
         cv2.line(disp, (100, 100), tuple(pt2.astype(np.int16)), (123, 50, 168), thickness=3, lineType=cv2.LINE_AA)
         cv2.circle(disp, (100, 100), radius, (255, 255, 255), thickness=5, lineType=cv2.LINE_AA)
-        cv2.imshow("rotary_encoder_mock", disp)
+        return disp
 
     @classmethod
     def main(cls):
@@ -143,5 +143,5 @@ class RotaryEncoderView(RotaryEncoderBase):
                 rot.press()
             elif k == KeyCode.UP_ARROW:
                 rot.press_toggle()
-            rot.refresh()
+            cv2.imshow("rotary_encoder_mock", rot.render())
             k = cv2.waitKeyEx(1)
