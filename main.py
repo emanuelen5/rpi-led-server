@@ -48,6 +48,14 @@ def main_display():
             Globals.buffer_oled = display.refresh()
 
 
+def pixels_update_buffer():
+    Globals.buffer_leds = original_show()
+
+
+original_show = pixels.show
+pixels.show = pixels_update_buffer
+
+
 def main_leds():
     while Globals.running:
         pixels.fill((255, 0, 0))
@@ -80,15 +88,15 @@ def main_rotenc():
         Globals.buffer_rotenc = rotenc.render()
 
 
-print("Press q to exit")
-
 t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
 threads = (t1, t2, t3)
-for t in (t2, t3):
+for t in threads:
     t.start()
 
+
+print("Press q to exit")
 while True:
     k = cv2.waitKeyEx(1)
     if k == ord('q'):
@@ -100,6 +108,4 @@ while True:
         Globals.keypress_leds.append(k)
     cv2.imshow("OLED_DISPLAY", Globals.buffer_oled)
     cv2.imshow("ROTARY_ENCODER", Globals.buffer_rotenc)
-
-
-
+    cv2.imshow("LEDS", Globals.buffer_leds)
