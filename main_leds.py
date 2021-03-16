@@ -2,6 +2,7 @@ import time
 from argparse import ArgumentParser
 from leds import create_pixels
 from leds.mock import LED_ModelView
+from leds.color import rainbow_cycle
 import sys
 import cv2
 
@@ -13,39 +14,6 @@ args = parser.parse_args()
 num_pixels = args.pixel_count
 
 pixels = create_pixels(num_pixels=50)
-
-
-def wheel(pos):
-    # Input a value 0 to 255 to get a color value.
-    # The colours are a transition r - g - b - back to r.
-    if pos < 0 or pos > 255:
-        r = g = b = 0
-    elif pos < 85:
-        r = int(pos * 3)
-        g = int(255 - pos * 3)
-        b = 0
-    elif pos < 170:
-        pos -= 85
-        r = int(255 - pos * 3)
-        g = 0
-        b = int(pos * 3)
-    else:
-        pos -= 170
-        r = 0
-        g = int(pos * 3)
-        b = int(255 - pos * 3)
-    return r, g, b
-
-
-def rainbow_cycle(wait, duration=1.0):
-    start_time = time.time()
-    while time.time() - start_time < duration:
-        for j in range(255):
-            for i in range(num_pixels):
-                pixel_index = (i * 256 // num_pixels) + j
-                pixels[i] = wheel(pixel_index & 255)
-            pixels.show()
-            time.sleep(wait)
 
 
 k = None
@@ -76,4 +44,4 @@ while True:
     pixels.show()
     time.sleep(1)
 
-    rainbow_cycle(0.001, 5)  # rainbow cycle with 1ms delay per step
+    rainbow_cycle(pixels, 0.001, 5)  # rainbow cycle with 1ms delay per step

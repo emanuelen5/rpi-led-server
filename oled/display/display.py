@@ -40,8 +40,7 @@ class DisplayModelView(DisplayModel):
         X, Y, _ = np.meshgrid(range(x), range(y), range(z))
         self.grid = (Y % self.scaling == self.scaling - 1) | (X % self.scaling == self.scaling - 1)
 
-    def refresh(self):
-        super().refresh()
+    def render(self) -> np.ndarray:
         buffer = liboled.get_buffer().astype(np.float32)
         buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
         buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
@@ -52,4 +51,8 @@ class DisplayModelView(DisplayModel):
         # Make border
         buffer = cv2.copyMakeBorder(buffer, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=(1., 1., 1.))
         self.rendered_buffer = buffer
-        cv2.imshow("OLED_Display", buffer)
+        return buffer
+
+    def refresh(self) -> np.ndarray:
+        super().refresh()
+        return self.render()
