@@ -16,16 +16,14 @@ num_pixels = args.pixel_count
 pixels = create_pixels(num_pixels=50)
 
 
-k = None
 if isinstance(pixels, LED_ModelView):
     show_orig = pixels.show
 
     def show_interactive():
-        r = show_orig()
+        cv2.imshow("LEDS", show_orig())
         k = cv2.waitKeyEx(1)
         if k == ord('q'):
             sys.exit(0)
-        return r
     pixels.show = show_interactive
 
 while True:
