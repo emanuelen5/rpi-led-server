@@ -19,9 +19,10 @@ class PINS(IntEnum):
     BTN = 13
 
 
+@dataclass
 class RotaryEncoderBase:
     cb_rotation: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
-    cb_press: List[Callable[[], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
+    cb_press: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
 
     def register_rotation_callback(self, cb: Callable[[bool], None]):
         self.cb_rotation.append(cb)
@@ -110,19 +111,25 @@ class RotaryEncoderView(RotaryEncoderBase):
         self.pressed = True
         self.pressed_time = time.time()
         self._timeout = self.timeout
+        for cb in self.cb_press:
+            cb(self.pressed)
 
     def press_toggle(self):
         self.pressed = not self.pressed
         self._timeout = float("inf")
+        for cb in self.cb_press:
+            cb(self.pressed)
 
     def rotate(self, clockwise: bool):
         self.rotation += 1 if clockwise else -1
+        for cb in self.cb_rotation:
+            cb(clockwise)
 
     def render(self) -> np.ndarray:
         disp = np.zeros((200, 200, 3), dtype=np.uint8)
         radius = 40 if self.pressed else 50
         if self.pressed and time.time() - self.pressed_time > self._timeout:
-            self.pressed = False
+            self.press_toggle()
         rotation = self.rotation * self.rotation_per_step
         pt2 = np.array([100, 100]) + np.array([math.sin(rotation), -math.cos(rotation)]) * radius
         cv2.line(disp, (100, 100), tuple(pt2.astype(np.int16)), (123, 50, 168), thickness=3, lineType=cv2.LINE_AA)

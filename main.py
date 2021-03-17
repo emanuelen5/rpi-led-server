@@ -1,13 +1,14 @@
 from oled import OLED
-from oled.fonts import put_string
+from oled.fonts import put_string, Font1206
 from datetime import datetime
 from enum import Enum, auto
 from leds import create_pixels
-from leds.color import rainbow_cycle
+from leds.color import rainbow_cycle, wheel
 from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
 from threading import Thread
 from util import KeyCode
+from dataclasses import dataclass
 import time
 import cv2
 import numpy as np
@@ -22,12 +23,46 @@ num_pixels = args.pixel_count
 pixels = create_pixels(num_pixels=50)
 
 
-class Modes(Enum):
-    IDLE = auto()
+class LED_Mode(Enum):
+    COLOR = auto()
+    RAINBOW = auto()
+
+
+class SelectMode(Enum):
+    TIME = auto()
+    LED_BRIGHTNESS = auto()
+    LED_COLOR = auto()
+    LED_EFFECT = auto()
+    EFFECT_SPEED = auto()
+
+
+@dataclass
+class LED_Settings:
+    brigthness: float = 0
+    color_index: int = 0
+    cycle_index: int = 0
+    speed: float = 0
+
+
+def cycle_enum(enum_value: Enum, forwards: bool = True):
+    cls = enum_value.__class__
+    enums = list(cls)
+    idx = enums.index(enum_value)
+    if forwards:
+        idx_new = (idx + 1) % len(cls)
+    else:
+        idx_new = (idx - 1) % len(cls)
+    try:
+        return enums[idx_new]
+    except:
+        print(f"Enums: {enums}")
+        print(f"idx_new: {idx_new}")
 
 
 class Globals:
-    mode = Modes.IDLE
+    led_mode = LED_Mode.COLOR
+    select_mode = SelectMode.TIME
+    led_settings: LED_Settings = LED_Settings()
     running: bool = True
     buffer_oled: np.ndarray = np.empty((1, 1, 1))
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
@@ -42,9 +77,11 @@ def main_display():
         while Globals.running:
             display.clear()
             dt = datetime.now()
-            put_string(display.buffer, 0, 26, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
-            put_string(display.buffer, 0, 16, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
-            put_string(display.buffer, 0, 36, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
+            put_string(display.buffer, 5, 0,  f"LED: {Globals.led_mode.name}", fg=(1., 1., 1.), font=Font1206)
+            put_string(display.buffer, 5, 10, f"SEL: {Globals.select_mode.name}", fg=(1., 1., 1.), font=Font1206)
+            put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
+            put_string(display.buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
+            put_string(display.buffer, 0, 46, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
             Globals.buffer_oled = display.refresh()
 
 
@@ -57,24 +94,43 @@ pixels.show = pixels_update_buffer
 
 
 def main_leds():
+    pixels.fill(wheel(Globals.led_settings.color_index))
+    pixels.show()
     while Globals.running:
-        pixels.fill((255, 0, 0))
-        pixels.show()
-        time.sleep(1)
+        if Globals.led_mode == LED_Mode.COLOR:
+            pixels.fill(wheel(Globals.led_settings.color_index))
+            pixels.show()
+        elif Globals.led_mode == LED_Mode.RAINBOW:
+            pixels.fill(wheel(Globals.led_settings.color_index))
+            time.sleep(Globals.led_settings.speed)
+        time.sleep(0.001)
 
-        pixels.fill((0, 255, 0))
-        pixels.show()
-        time.sleep(1)
 
-        pixels.fill((0, 0, 255))
-        pixels.show()
-        time.sleep(1)
+def on_rotate(cw: bool):
+    if Globals.select_mode == SelectMode.LED_BRIGHTNESS:
+        diff = Globals.led_settings.brigthness * 0.05
+        diff = diff if cw else -diff
+        Globals.led_settings.brigthness = max(0, min(Globals.led_settings.brigthness + diff, 255.))
+    elif Globals.select_mode == SelectMode.LED_COLOR:
+        diff = 1 if cw else -1
+        Globals.led_settings.color_index = (Globals.led_settings.color_index + diff) % 256
+    elif Globals.select_mode == SelectMode.EFFECT_SPEED:
+        diff = Globals.led_settings.speed * 0.1
+        diff = diff if cw else -diff
+        Globals.led_settings.speed = max(0.01, min(Globals.led_settings.speed + diff, 0.2))
+    elif Globals.select_mode == SelectMode.LED_EFFECT:
+        Globals.led_mode = cycle_enum(Globals.led_mode, cw)
 
-        rainbow_cycle(pixels, 0.001, 5)  # rainbow cycle with 1ms delay per step
+
+def on_press(down: bool):
+    if down:
+        Globals.select_mode = cycle_enum(Globals.select_mode)
 
 
 def main_rotenc():
     rotenc = RotaryEncoder()
+    rotenc.register_rotation_callback(on_rotate)
+    rotenc.register_press_callback(on_press)
     while Globals.running:
         k = Globals.keypress_rotenc.pop() if len(Globals.keypress_rotenc) else -1
         if k in (KeyCode.LEFT_ARROW, ord('h')):
