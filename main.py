@@ -3,7 +3,7 @@ from oled.fonts import put_string, Font1206
 from datetime import datetime
 from enum import Enum, auto
 from leds import create_pixels
-from leds.color import rainbow_cycle, wheel
+from leds.color import wheel
 from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
 from threading import Thread
@@ -38,7 +38,7 @@ class SelectMode(Enum):
 
 @dataclass
 class LED_Settings:
-    brigthness: float = 0
+    brightness: float = 1.0
     color_index: int = 0
     cycle_index: int = 0
     speed: float = 0
@@ -94,30 +94,34 @@ pixels.show = pixels_update_buffer
 
 
 def main_leds():
-    pixels.fill(wheel(Globals.led_settings.color_index))
+    pixels.fill((0, 0, 0))
     pixels.show()
     while Globals.running:
         if Globals.led_mode == LED_Mode.COLOR:
-            pixels.fill(wheel(Globals.led_settings.color_index))
+            pixels.fill((np.array(list(wheel(Globals.led_settings.color_index))) * Globals.led_settings.brightness).astype(
+                np.uint8))
             pixels.show()
         elif Globals.led_mode == LED_Mode.RAINBOW:
-            pixels.fill(wheel(Globals.led_settings.color_index))
-            time.sleep(Globals.led_settings.speed)
+            for i in range(num_pixels):
+                pixel_index = (i * 255 // num_pixels) + Globals.led_settings.cycle_index
+                pixels[i] = (np.array(list(wheel(int(pixel_index) & 255))) * Globals.led_settings.brightness).astype(np.uint8)
+            pixels.show()
+            Globals.led_settings.cycle_index += Globals.led_settings.speed
         time.sleep(0.001)
 
 
 def on_rotate(cw: bool):
     if Globals.select_mode == SelectMode.LED_BRIGHTNESS:
-        diff = Globals.led_settings.brigthness * 0.05
+        diff = Globals.led_settings.brightness * 0.05 + 0.001
         diff = diff if cw else -diff
-        Globals.led_settings.brigthness = max(0, min(Globals.led_settings.brigthness + diff, 255.))
+        Globals.led_settings.brightness = max(0, min(Globals.led_settings.brightness + diff, 1.0))
     elif Globals.select_mode == SelectMode.LED_COLOR:
         diff = 1 if cw else -1
         Globals.led_settings.color_index = (Globals.led_settings.color_index + diff) % 256
     elif Globals.select_mode == SelectMode.EFFECT_SPEED:
         diff = Globals.led_settings.speed * 0.1
         diff = diff if cw else -diff
-        Globals.led_settings.speed = max(0.01, min(Globals.led_settings.speed + diff, 0.2))
+        Globals.led_settings.speed = max(0.001, min(Globals.led_settings.speed + diff, 1.0))
     elif Globals.select_mode == SelectMode.LED_EFFECT:
         Globals.led_mode = cycle_enum(Globals.led_mode, cw)
 
