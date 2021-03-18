@@ -29,11 +29,12 @@ class LED_Mode(Enum):
 
 
 class SelectMode(Enum):
-    TIME = auto()
+    MAIN_WINDOW = auto()
     LED_BRIGHTNESS = auto()
     LED_COLOR = auto()
     LED_EFFECT = auto()
     EFFECT_SPEED = auto()
+    EFFECT_STRENGTH = auto()
 
 
 @dataclass
@@ -42,6 +43,7 @@ class LED_Settings:
     color_index: int = 0
     cycle_index: int = 0
     speed: float = 0
+    strength: float = 1.0
 
 
 def cycle_enum(enum_value: Enum, forwards: bool = True):
@@ -61,7 +63,7 @@ def cycle_enum(enum_value: Enum, forwards: bool = True):
 
 class Globals:
     led_mode = LED_Mode.COLOR
-    select_mode = SelectMode.TIME
+    select_mode = SelectMode.MAIN_WINDOW
     led_settings: LED_Settings = LED_Settings()
     running: bool = True
     buffer_oled: np.ndarray = np.empty((1, 1, 1))
@@ -77,8 +79,8 @@ def main_display():
         while Globals.running:
             display.clear()
             dt = datetime.now()
-            put_string(display.buffer, 5, 0,  f"LED: {Globals.led_mode.name}", fg=(1., 1., 1.), font=Font1206)
-            put_string(display.buffer, 5, 10, f"SEL: {Globals.select_mode.name}", fg=(1., 1., 1.), font=Font1206)
+            put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            put_string(display.buffer, 0, 12, f"LED:{Globals.led_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
             put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
             put_string(display.buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
             put_string(display.buffer, 0, 46, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
@@ -102,9 +104,10 @@ def main_leds():
                 np.uint8))
             pixels.show()
         elif Globals.led_mode == LED_Mode.RAINBOW:
+            c_effect_strength = 255 / num_pixels * Globals.led_settings.strength
             for i in range(num_pixels):
-                pixel_index = (i * 255 // num_pixels) + Globals.led_settings.cycle_index
-                pixels[i] = (np.array(list(wheel(int(pixel_index) & 255))) * Globals.led_settings.brightness).astype(np.uint8)
+                pixel_index = (i * c_effect_strength) + Globals.led_settings.cycle_index + Globals.led_settings.color_index
+                pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
             pixels.show()
             Globals.led_settings.cycle_index += Globals.led_settings.speed
         time.sleep(0.001)
@@ -118,6 +121,10 @@ def on_rotate(cw: bool):
     elif Globals.select_mode == SelectMode.LED_COLOR:
         diff = 1 if cw else -1
         Globals.led_settings.color_index = (Globals.led_settings.color_index + diff) % 256
+    elif Globals.select_mode == SelectMode.EFFECT_STRENGTH:
+        diff = Globals.led_settings.strength * 0.01
+        diff = diff if cw else -diff
+        Globals.led_settings.strength = max(0.0, min(Globals.led_settings.strength + diff, 1.0))
     elif Globals.select_mode == SelectMode.EFFECT_SPEED:
         diff = Globals.led_settings.speed * 0.1
         diff = diff if cw else -diff
