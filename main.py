@@ -173,6 +173,18 @@ threads = (t1, t2, t3)
 for t in threads:
     t.start()
 
+WINDOW_LEDS = "LEDS"
+WINDOW_ROTENC = "ROTARY_ENCODER"
+WINDOW_OLED = "OLED_DISPLAY"
+
+cv2.namedWindow(WINDOW_LEDS)
+cv2.namedWindow(WINDOW_ROTENC)
+cv2.namedWindow(WINDOW_OLED)
+
+time.sleep(0.3) # Fix for making sure moveWindow actually bites
+cv2.moveWindow(WINDOW_LEDS, 200, 650)
+cv2.moveWindow(WINDOW_ROTENC, 780, 370)
+cv2.moveWindow(WINDOW_OLED, 200, 200)
 
 print("Press q to exit")
 while True:
@@ -184,6 +196,6 @@ while True:
         Globals.keypress_rotenc.append(k)
         Globals.keypress_oled.append(k)
         Globals.keypress_leds.append(k)
-    cv2.imshow("OLED_DISPLAY", Globals.buffer_oled)
-    cv2.imshow("ROTARY_ENCODER", Globals.buffer_rotenc)
-    cv2.imshow("LEDS", Globals.buffer_leds)
+    cv2.imshow(WINDOW_LEDS, Globals.buffer_leds)
+    cv2.imshow(WINDOW_ROTENC, Globals.buffer_rotenc)
+    cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
