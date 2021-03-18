@@ -80,7 +80,18 @@ def main_display():
             display.clear()
             dt = datetime.now()
             put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
-            put_string(display.buffer, 0, 12, f"LED:{Globals.led_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            if Globals.select_mode == SelectMode.LED_EFFECT:
+                put_string(display.buffer, 0, 12, f"={Globals.led_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            elif Globals.select_mode == SelectMode.EFFECT_SPEED:
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.speed:5.4f}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            elif Globals.select_mode == SelectMode.EFFECT_STRENGTH:
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.strength:5.4f}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            elif Globals.select_mode == SelectMode.LED_BRIGHTNESS:
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.brightness:5.3f}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            elif Globals.select_mode == SelectMode.LED_COLOR:
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.color_index:3d}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            elif Globals.select_mode == SelectMode.MAIN_WINDOW:
+                put_string(display.buffer, 0, 12, "", fg=(1., 1., 1.), bg=None, font=Font1206)
             put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
             put_string(display.buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
             put_string(display.buffer, 0, 46, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
@@ -122,11 +133,11 @@ def on_rotate(cw: bool):
         diff = 1 if cw else -1
         Globals.led_settings.color_index = (Globals.led_settings.color_index + diff) % 256
     elif Globals.select_mode == SelectMode.EFFECT_STRENGTH:
-        diff = Globals.led_settings.strength * 0.01
+        diff = Globals.led_settings.strength * 0.01 + 0.01
         diff = diff if cw else -diff
-        Globals.led_settings.strength = max(0.0, min(Globals.led_settings.strength + diff, 1.0))
+        Globals.led_settings.strength = max(0.001, min(Globals.led_settings.strength + diff, 1.0))
     elif Globals.select_mode == SelectMode.EFFECT_SPEED:
-        diff = Globals.led_settings.speed * 0.1
+        diff = Globals.led_settings.speed * 0.01 + 0.01
         diff = diff if cw else -diff
         Globals.led_settings.speed = max(0.001, min(Globals.led_settings.speed + diff, 1.0))
     elif Globals.select_mode == SelectMode.LED_EFFECT:
