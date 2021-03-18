@@ -1,5 +1,5 @@
 from oled import OLED
-from oled.fonts import put_string, Font1206
+from oled.fonts import put_string
 from datetime import datetime
 from enum import Enum, auto
 from leds import create_pixels
@@ -28,6 +28,10 @@ class LED_Mode(Enum):
     RAINBOW = auto()
 
 
+class MainMode(Enum):
+    DEMO = auto()
+
+
 class SelectMode(Enum):
     MAIN_WINDOW = auto()
     LED_BRIGHTNESS = auto()
@@ -54,15 +58,12 @@ def cycle_enum(enum_value: Enum, forwards: bool = True):
         idx_new = (idx + 1) % len(cls)
     else:
         idx_new = (idx - 1) % len(cls)
-    try:
-        return enums[idx_new]
-    except:
-        print(f"Enums: {enums}")
-        print(f"idx_new: {idx_new}")
+    return enums[idx_new]
 
 
 class Globals:
     led_mode = LED_Mode.COLOR
+    main_mode = MainMode.DEMO
     select_mode = SelectMode.MAIN_WINDOW
     led_settings: LED_Settings = LED_Settings()
     running: bool = True
@@ -79,19 +80,19 @@ def main_display():
         while Globals.running:
             display.clear()
             dt = datetime.now()
-            put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
+            put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None)
             if Globals.select_mode == SelectMode.LED_EFFECT:
-                put_string(display.buffer, 0, 12, f"={Globals.led_mode.name}", fg=(1., 1., 1.), bg=None, font=Font1206)
+                put_string(display.buffer, 0, 12, f"={Globals.led_mode.name}", fg=(1., 1., 1.), bg=None)
             elif Globals.select_mode == SelectMode.EFFECT_SPEED:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.speed:5.4f}", fg=(1., 1., 1.), bg=None, font=Font1206)
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.speed:5.4f}", fg=(1., 1., 1.), bg=None)
             elif Globals.select_mode == SelectMode.EFFECT_STRENGTH:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.strength:5.4f}", fg=(1., 1., 1.), bg=None, font=Font1206)
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.strength:5.4f}", fg=(1., 1., 1.), bg=None)
             elif Globals.select_mode == SelectMode.LED_BRIGHTNESS:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.brightness:5.3f}", fg=(1., 1., 1.), bg=None, font=Font1206)
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.brightness:5.3f}", fg=(1., 1., 1.), bg=None)
             elif Globals.select_mode == SelectMode.LED_COLOR:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.color_index:3d}", fg=(1., 1., 1.), bg=None, font=Font1206)
+                put_string(display.buffer, 0, 12, f"={Globals.led_settings.color_index:3d}", fg=(1., 1., 1.), bg=None)
             elif Globals.select_mode == SelectMode.MAIN_WINDOW:
-                put_string(display.buffer, 0, 12, "", fg=(1., 1., 1.), bg=None, font=Font1206)
+                put_string(display.buffer, 0, 12, f"={Globals.main_mode.name}", fg=(1., 1., 1.), bg=None)
             put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
             put_string(display.buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
             put_string(display.buffer, 0, 46, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
@@ -142,6 +143,8 @@ def on_rotate(cw: bool):
         Globals.led_settings.speed = max(0.001, min(Globals.led_settings.speed + diff, 1.0))
     elif Globals.select_mode == SelectMode.LED_EFFECT:
         Globals.led_mode = cycle_enum(Globals.led_mode, cw)
+    elif Globals.select_mode == SelectMode.MAIN_WINDOW:
+        Globals.main_mode = cycle_enum(Globals.main_mode)
 
 
 def on_press(down: bool):
