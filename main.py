@@ -20,7 +20,7 @@ args = parser.parse_args()
 # The number of NeoPixels
 num_pixels = args.pixel_count
 
-pixels = create_pixels(num_pixels=50)
+pixels = create_pixels(num_pixels=num_pixels)
 
 
 class LED_Mode(Enum):
@@ -31,6 +31,7 @@ class LED_Mode(Enum):
 class MainMode(Enum):
     DEMO = auto()
     BLANK = auto()
+    NOTIFICATIONS = auto()
 
 
 class SelectMode(Enum):
@@ -74,6 +75,7 @@ class Globals:
     keypress_rotenc = []
     keypress_oled = []
     keypress_leds = []
+    notifications = ["Homeassistant"]
 
 
 def main_display():
@@ -98,6 +100,17 @@ def main_display():
                 put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
                 put_string(display.buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(1., 0., 0.), bg=None, alpha=1)
                 put_string(display.buffer, 0, 46, "Emaus demo", bg=(1., 1., 0.), fg=None, alpha=0.7)
+            elif Globals.main_mode == MainMode.BLANK:
+                pass
+            elif Globals.main_mode == MainMode.NOTIFICATIONS:
+                if len(Globals.notifications) == 0:
+                    put_string(display.buffer, 0, 26, "No notifications", fg=(0., 1., 0.))
+                else:
+                    for i, notification in enumerate(Globals.notifications):
+                        put_string(display.buffer, 0, 26 + i * 12, f"{i+1}:", bg=None)
+                        put_string(display.buffer, 12, 26 + i * 12, str(notification), bg=None)
+            if len(Globals.notifications):
+                put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
             Globals.buffer_oled = display.refresh()
 
 
@@ -146,7 +159,7 @@ def on_rotate(cw: bool):
     elif Globals.select_mode == SelectMode.LED_EFFECT:
         Globals.led_mode = cycle_enum(Globals.led_mode, cw)
     elif Globals.select_mode == SelectMode.MAIN_WINDOW:
-        Globals.main_mode = cycle_enum(Globals.main_mode)
+        Globals.main_mode = cycle_enum(Globals.main_mode, cw)
 
 
 def on_press(down: bool):

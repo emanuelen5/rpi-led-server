@@ -35,8 +35,6 @@ class RotaryEncoderBase:
 class RotaryEncoderModel(RotaryEncoderBase):
     counter: int = field(default=0, compare=False)
     dt_state: bool = None
-    cb_rotation: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
-    cb_press: List[Callable[[], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
 
     def __post_init__(self):
         GPIO.setmode(GPIO.BCM)
@@ -81,7 +79,7 @@ class RotaryEncoderModel(RotaryEncoderBase):
             logger.debug(f"{pin} - falling")
 
             for cb in self.cb_press:
-                cb()
+                cb(value)
 
     @classmethod
     def main(cls):
