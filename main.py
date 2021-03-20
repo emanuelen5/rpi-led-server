@@ -199,7 +199,7 @@ cv2.namedWindow(WINDOW_LEDS)
 cv2.namedWindow(WINDOW_ROTENC)
 cv2.namedWindow(WINDOW_OLED)
 
-time.sleep(0.3) # Fix for making sure moveWindow actually bites
+time.sleep(0.3)  # Fix for making sure moveWindow actually bites
 cv2.moveWindow(WINDOW_LEDS, 200, 650)
 cv2.moveWindow(WINDOW_ROTENC, 780, 370)
 cv2.moveWindow(WINDOW_OLED, 200, 200)

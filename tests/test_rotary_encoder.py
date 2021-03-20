@@ -60,7 +60,7 @@ class TestCallbacks(BaseTestRotaryEncoder):
     def test_press_down_runs_cb(self):
         self.set_pin(PINS.BTN, False)
         self.rotenc.button_callback(PINS.BTN)
-        self.cb_press.assert_called_once_with()
+        self.cb_press.assert_called_once_with(False)
 
     def test_press_release_doesnt_run_cb(self):
         self.set_pin(PINS.BTN, True)
