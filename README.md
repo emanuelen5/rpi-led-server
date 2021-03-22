@@ -37,6 +37,29 @@ This project will serve as an LED server that connects to external services thro
 ### Requirements
 * Python 3.8
 
+Library dependencies:
+```bash
+# Numpy
+sudo apt-get install libatlas-base-dev
+# OpenCV
+sudo apt install -y libilmbase-dev libopenexr-dev libgstreamer1.0-dev
+```
+
+#### Additionally on Raspberry Pi:
+
+Install the bcm2835 library:
+```bash
+# download the latest version of the library, say bcm2835-1.68.tar.gz
+wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.68.tar.gz -O bcm2835.tar.gz
+tar -zxvf bcm2835.tar.gz
+cd bcm2835-1.??
+./configure
+make
+sudo make check
+sudo make install
+```
+
+
 ### Installation steps
 ```bash
 # Install dependencies
