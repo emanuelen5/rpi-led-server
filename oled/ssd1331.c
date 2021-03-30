@@ -9,6 +9,7 @@ void command(char cmd) {
 
 void SSD1331_begin()
 {
+    bcm2835_init();
     bcm2835_gpio_fsel(RST, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(DC, BCM2835_GPIO_FSEL_OUTP);
 
@@ -66,7 +67,7 @@ void SSD1331_begin()
 }
 
 void SSD1331_end() {
-	bcm2835_spi_end();
+    bcm2835_spi_end();
 }
 
 void SSD1331_display(uint16_t *buffer) {
