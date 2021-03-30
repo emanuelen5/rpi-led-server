@@ -10,6 +10,7 @@
 #define BCM2835_SPI_BIT_ORDER_MSBFIRST 0
 #define BCM2835_GPIO_FSEL_OUTP 0
 
+static void bcm2835_init(void) {};
 static void bcm2835_delay(int a) {};
 static void bcm2835_gpio_fsel(int a, int b) {};
 static void bcm2835_gpio_write(int a, int b) {};
