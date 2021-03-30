@@ -67,7 +67,7 @@ static PyObject *display(PyObject *self, PyObject *args) {
 			r = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0) + 0.5;
 			g = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1) + 0.5;
 			b = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2) + 0.5;
-			display_buffer[y * OLED_WIDTH + x] = htons(PACK_RGB(r, b, g));
+			display_buffer[y * OLED_WIDTH + x] = htons(PACK_RGB(r, g, b));
 		}
 	}
 
