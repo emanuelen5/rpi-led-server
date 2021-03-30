@@ -29,7 +29,7 @@ class DisplayModel:
 
 
 @dataclass
-class DisplayModelView:
+class DisplayModelViewer:
     model: DisplayModel
     scaling: float = 6.0
     rendered_buffer: np.ndarray = field(init=False, default=None, repr=False)
