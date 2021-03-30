@@ -3,6 +3,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 #include <stdbool.h>
+#include <arpa/inet.h>
 #include "ssd1331.h"
 
 bool is_initialized = false;
@@ -66,7 +67,7 @@ static PyObject *display(PyObject *self, PyObject *args) {
 			r = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 0) + 0.5;
 			g = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 1) + 0.5;
 			b = 255.0 * *(npy_double*)PyArray_GETPTR3(frame_buffer, y, x, 2) + 0.5;
-			display_buffer[y * OLED_WIDTH + x] = PACK_RGB(r, g, b);
+			display_buffer[y * OLED_WIDTH + x] = htons(PACK_RGB(r, b, g));
 		}
 	}
 
@@ -96,7 +97,7 @@ static PyObject *get_buffer(PyObject *self, PyObject *args) {
 	uint16_t rgb;
 	for (int y=0; y < OLED_HEIGHT; y++) {
 		for (int x=0; x < OLED_WIDTH; x++) {
-			rgb = display_buffer[y * OLED_WIDTH + x];
+			rgb = ntohs(display_buffer[y * OLED_WIDTH + x]);
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 0) = UNPACK_R(rgb);
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 1) = UNPACK_G(rgb);
 			*(npy_uint8*)PyArray_GETPTR3(display_buffer_npy, y, x, 2) = UNPACK_B(rgb);

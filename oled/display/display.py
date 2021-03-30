@@ -44,6 +44,7 @@ class DisplayModelView:
     def render(self) -> np.ndarray:
         self.model.refresh()
         buffer = liboled.get_buffer().astype(np.float32)
+        buffer = cv2.cvtColor(buffer, cv2.COLOR_RGB2BGR)
         buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
         buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
         buffer[:, :, 2] = buffer[:, :, 2] * 1.0 / 0xF8
