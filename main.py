@@ -17,6 +17,7 @@ import numpy as np
 
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
+parser.add_argument("--no-viewer", action="store_true", help="Do not open a viewer with a render of the model state")
 args = parser.parse_args()
 
 # The number of NeoPixels
@@ -70,6 +71,7 @@ class Globals:
     main_mode = MainMode.DEMO
     select_mode = SelectMode.MAIN_WINDOW
     led_settings: LED_Settings = LED_Settings()
+    show_viewer: bool = not args.no_viewer
     running: bool = True
     buffer_oled: np.ndarray = np.empty((1, 1, 1))
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
@@ -114,7 +116,8 @@ def main_display():
                         put_string(display.buffer, 12, 26 + i * 12, str(notification), bg=None)
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
-            Globals.buffer_oled = view.render()
+            if Globals.show_viewer:
+                Globals.buffer_oled = view.render()
 
 
 def pixels_update_buffer():
@@ -175,7 +178,7 @@ def main_rotenc():
     view = RotaryEncoderView(rotenc)
     rotenc.register_rotation_callback(on_rotate)
     rotenc.register_press_callback(on_press)
-    while Globals.running:
+    while Globals.running and Globals.show_viewer:
         k = Globals.keypress_rotenc.pop() if len(Globals.keypress_rotenc) else -1
         if k in (KeyCode.LEFT_ARROW, ord('h')):
             rotenc.rotate(False)
@@ -185,7 +188,10 @@ def main_rotenc():
             view.press_temp()
         elif k in (KeyCode.UP_ARROW, ord('k')):
             view.press_toggle()
-        Globals.buffer_rotenc = view.render()
+        if Globals.show_viewer:
+            Globals.buffer_rotenc = view.render()
+    while Globals.running:
+        time.sleep(0.2)
 
 
 t1 = Thread(target=main_leds, daemon=True)
@@ -195,29 +201,41 @@ threads = (t1, t2, t3)
 for t in threads:
     t.start()
 
-WINDOW_LEDS = "LEDS"
-WINDOW_ROTENC = "ROTARY_ENCODER"
-WINDOW_OLED = "OLED_DISPLAY"
+if Globals.show_viewer:
+    WINDOW_LEDS = "LEDS"
+    WINDOW_ROTENC = "ROTARY_ENCODER"
+    WINDOW_OLED = "OLED_DISPLAY"
 
-cv2.namedWindow(WINDOW_LEDS)
-cv2.namedWindow(WINDOW_ROTENC)
-cv2.namedWindow(WINDOW_OLED)
+    cv2.namedWindow(WINDOW_LEDS)
+    cv2.namedWindow(WINDOW_ROTENC)
+    cv2.namedWindow(WINDOW_OLED)
 
-time.sleep(0.3)  # Fix for making sure moveWindow actually bites
-cv2.moveWindow(WINDOW_LEDS, 200, 650)
-cv2.moveWindow(WINDOW_ROTENC, 780, 370)
-cv2.moveWindow(WINDOW_OLED, 200, 200)
+    time.sleep(0.3)  # Fix for making sure moveWindow actually bites
+    cv2.moveWindow(WINDOW_LEDS, 200, 650)
+    cv2.moveWindow(WINDOW_ROTENC, 780, 370)
+    cv2.moveWindow(WINDOW_OLED, 200, 200)
 
-print("Press q to exit")
-while True:
-    k = cv2.waitKeyEx(1)
-    if k == ord('q'):
-        Globals.running = False
-        break
-    else:
-        Globals.keypress_rotenc.append(k)
-        Globals.keypress_oled.append(k)
-        Globals.keypress_leds.append(k)
-    cv2.imshow(WINDOW_LEDS, Globals.buffer_leds)
-    cv2.imshow(WINDOW_ROTENC, Globals.buffer_rotenc)
-    cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
+    print("Press q to exit")
+    while True:
+        k = cv2.waitKeyEx(1)
+        if k == ord('q'):
+            Globals.running = False
+            break
+        else:
+            Globals.keypress_rotenc.append(k)
+            Globals.keypress_oled.append(k)
+            Globals.keypress_leds.append(k)
+        cv2.imshow(WINDOW_LEDS, Globals.buffer_leds)
+        cv2.imshow(WINDOW_ROTENC, Globals.buffer_rotenc)
+        cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
+
+else:
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        pass
+
+Globals.running = False
+for t in threads:
+    t.join()
