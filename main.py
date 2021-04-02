@@ -6,6 +6,7 @@ from leds import create_pixels
 from leds.color import wheel
 from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
+from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
 from util import KeyCode
 from dataclasses import dataclass
@@ -169,6 +170,7 @@ def on_press(down: bool):
 
 def main_rotenc():
     rotenc = RotaryEncoder()
+    view = RotaryEncoderView(rotenc)
     rotenc.register_rotation_callback(on_rotate)
     rotenc.register_press_callback(on_press)
     while Globals.running:
@@ -178,10 +180,10 @@ def main_rotenc():
         elif k in (KeyCode.RIGHT_ARROW, ord('l')):
             rotenc.rotate(True)
         elif k in (KeyCode.DOWN_ARROW, ord('j')):
-            rotenc.press()
+            view.press_temp()
         elif k in (KeyCode.UP_ARROW, ord('k')):
-            rotenc.press_toggle()
-        Globals.buffer_rotenc = rotenc.render()
+            view.press_toggle()
+        Globals.buffer_rotenc = view.render()
 
 
 t1 = Thread(target=main_leds, daemon=True)
