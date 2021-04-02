@@ -1,6 +1,6 @@
 import unittest
 from rpi import GPIO
-from rotary_encoder.rotary_encoder import RotaryEncoderModel, PINS
+from rotary_encoder.rotary_encoder import RotaryEncoderGPIOModel, PINS
 from unittest.mock import MagicMock, patch
 
 
@@ -27,12 +27,12 @@ class BaseGPIO_Test(unittest.TestCase):
 class BaseTestRotaryEncoder(BaseGPIO_Test):
     def setUp(self) -> None:
         super().setUp()
-        self.rotenc = RotaryEncoderModel()
+        self.rotenc = RotaryEncoderGPIOModel()
         self.addCleanup(GPIO.cleanup)
 
         # Make sure we are at a known state first
         self.set_pin(PINS.CLK, False)
-        self.rotenc.rotation_callback(PINS.CLK)
+        self.rotenc.gpio_clk_pin_callback(PINS.CLK)
 
 
 class TestCallbacks(BaseTestRotaryEncoder):
@@ -45,27 +45,27 @@ class TestCallbacks(BaseTestRotaryEncoder):
 
     def test_calls_rotate_callback_on_cw(self):
         self.set_pin(PINS.DT, False)
-        self.rotenc.rotation_callback(PINS.DT)
+        self.rotenc.gpio_clk_pin_callback(PINS.DT)
         self.set_pin(PINS.CLK, True)
-        self.rotenc.rotation_callback(PINS.CLK)
+        self.rotenc.gpio_clk_pin_callback(PINS.CLK)
         self.cb_rotation.assert_called_once_with(True)
 
     def test_calls_rotate_callback_on_ccw(self):
         self.set_pin(PINS.DT, True)
-        self.rotenc.rotation_callback(PINS.DT)
+        self.rotenc.gpio_clk_pin_callback(PINS.DT)
         self.set_pin(PINS.CLK, True)
-        self.rotenc.rotation_callback(PINS.CLK)
+        self.rotenc.gpio_clk_pin_callback(PINS.CLK)
         self.cb_rotation.assert_called_once_with(False)
 
     def test_press_down_runs_cb(self):
         self.set_pin(PINS.BTN, False)
-        self.rotenc.button_callback(PINS.BTN)
+        self.rotenc.gpio_btn_pin_callback(PINS.BTN)
         self.cb_press.assert_called_once_with(False)
 
-    def test_press_release_doesnt_run_cb(self):
+    def test_press_release_runs_cb(self):
         self.set_pin(PINS.BTN, True)
-        self.rotenc.button_callback(PINS.BTN)
-        self.cb_press.assert_not_called()
+        self.rotenc.gpio_btn_pin_callback(PINS.BTN)
+        self.cb_press.assert_called_once_with(True)
 
 
 if __name__ == '__main__':
