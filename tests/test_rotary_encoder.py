@@ -1,6 +1,6 @@
 import unittest
 from rpi import GPIO
-from rotary_encoder.rotary_encoder import RotaryEncoderModel, PINS
+from rotary_encoder.rotary_encoder import RotaryEncoderGPIOModel, PINS
 from unittest.mock import MagicMock, patch
 
 
@@ -27,7 +27,7 @@ class BaseGPIO_Test(unittest.TestCase):
 class BaseTestRotaryEncoder(BaseGPIO_Test):
     def setUp(self) -> None:
         super().setUp()
-        self.rotenc = RotaryEncoderModel()
+        self.rotenc = RotaryEncoderGPIOModel()
         self.addCleanup(GPIO.cleanup)
 
         # Make sure we are at a known state first

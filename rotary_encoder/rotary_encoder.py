@@ -21,19 +21,31 @@ class PINS(IntEnum):
 
 @dataclass
 class RotaryEncoderBase:
+    counter: int = field(default=0, compare=False)
+    pressed: bool = False
     cb_rotation: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
     cb_press: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
 
     def register_rotation_callback(self, cb: Callable[[bool], None]):
         self.cb_rotation.append(cb)
 
+    def rotate(self, cw: bool):
+        self.counter += 1 if cw else -1
+        logger.debug(f"Rotation: {self.counter}")
+        for cb in self.cb_rotation:
+            cb(cw)
+
     def register_press_callback(self, cb: Callable[[], None]):
         self.cb_press.append(cb)
 
+    def press(self, pressed_down: bool):
+        self.pressed = pressed_down
+        for cb in self.cb_press:
+            cb(pressed_down)
+
 
 @dataclass
-class RotaryEncoderModel(RotaryEncoderBase):
-    counter: int = field(default=0, compare=False)
+class RotaryEncoderGPIOModel(RotaryEncoderBase):
     dt_state: bool = None
 
     def __post_init__(self):
@@ -58,14 +70,7 @@ class RotaryEncoderModel(RotaryEncoderBase):
 
         if pin is PINS.CLK:
             was_clockwise = self.dt_state != pin_value
-            if was_clockwise:
-                self.counter += 1
-            else:
-                self.counter -= 1
-            logger.info(f"Counter: {self.counter}")
-
-            for cb in self.cb_rotation:
-                cb(was_clockwise)
+            self.rotate(was_clockwise)
         elif pin is PINS.DT:
             self.dt_state = pin_value
 
@@ -77,9 +82,7 @@ class RotaryEncoderModel(RotaryEncoderBase):
             logger.debug(f"{pin} - rising")
         else:
             logger.debug(f"{pin} - falling")
-
-            for cb in self.cb_press:
-                cb(value)
+        self.press(value)
 
     @classmethod
     def main(cls):
@@ -94,18 +97,17 @@ class RotaryEncoderModel(RotaryEncoderBase):
 
 
 @dataclass
-class RotaryEncoderView(RotaryEncoderBase):
+class RotaryEncoderFakeModel(RotaryEncoderBase):
     steps: int = 15
-    pressed: bool = False
     pressed_time: float = field(repr=False, init=False, default=0)
     timeout: float = 0.1
 
     def __post_init__(self):
         self.rotation = 0
         self.rotation_per_step = 2 * math.pi / self.steps
-        self._timeout = self.timeout
+        self._timeout = None
 
-    def press(self):
+    def press_temp(self):
         self.pressed = True
         self.pressed_time = time.time()
         self._timeout = self.timeout
@@ -123,11 +125,14 @@ class RotaryEncoderView(RotaryEncoderBase):
         for cb in self.cb_rotation:
             cb(clockwise)
 
+
+@dataclass
+class RotaryEncoderView:
+    rotary_encoder: RotaryEncoderBase
+
     def render(self) -> np.ndarray:
         disp = np.zeros((200, 200, 3), dtype=np.uint8)
-        radius = 40 if self.pressed else 50
-        if self.pressed and time.time() - self.pressed_time > self._timeout:
-            self.press_toggle()
+        radius = 40 if self.rotary_encoder.pressed else 50
         rotation = self.rotation * self.rotation_per_step
         pt2 = np.array([100, 100]) + np.array([math.sin(rotation), -math.cos(rotation)]) * radius
         cv2.line(disp, (100, 100), tuple(pt2.astype(np.int16)), (123, 50, 168), thickness=3, lineType=cv2.LINE_AA)
