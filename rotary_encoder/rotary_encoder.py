@@ -1,5 +1,4 @@
 from rpi import GPIO
-from util import KeyCode
 from time import sleep
 from enum import IntEnum
 from dataclasses import dataclass, field
@@ -21,7 +20,7 @@ class PINS(IntEnum):
 
 @dataclass
 class RotaryEncoderBase:
-    counter: int = field(default=0, compare=False)
+    rotation: int = field(default=0, compare=False)
     pressed: bool = False
     cb_rotation: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
     cb_press: List[Callable[[bool], None]] = field(default_factory=lambda: [], init=False, repr=False, compare=False)
@@ -30,8 +29,8 @@ class RotaryEncoderBase:
         self.cb_rotation.append(cb)
 
     def rotate(self, cw: bool):
-        self.counter += 1 if cw else -1
-        logger.debug(f"Rotation: {self.counter}")
+        self.rotation += 1 if cw else -1
+        logger.debug(f"Rotation: {self.rotation}")
         for cb in self.cb_rotation:
             cb(cw)
 
@@ -55,11 +54,12 @@ class RotaryEncoderGPIOModel(RotaryEncoderBase):
         GPIO.setup(PINS.BTN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         self.dt_state = GPIO.input(PINS.DT)
+        self.pressed = GPIO.input(PINS.BTN)
 
-        GPIO.add_event_detect(PINS.CLK, GPIO.BOTH, callback=self.rotation_callback, bouncetime=5)
-        GPIO.add_event_detect(PINS.BTN, GPIO.BOTH, callback=self.button_callback, bouncetime=5)
+        GPIO.add_event_detect(PINS.CLK, GPIO.BOTH, callback=self.gpio_clk_pin_callback, bouncetime=5)
+        GPIO.add_event_detect(PINS.BTN, GPIO.BOTH, callback=self.gpio_btn_pin_callback, bouncetime=5)
 
-    def rotation_callback(self, channel: int):
+    def gpio_clk_pin_callback(self, channel: int):
         pin = PINS(channel)
         pin_value = GPIO.input(pin)
 
@@ -74,7 +74,7 @@ class RotaryEncoderGPIOModel(RotaryEncoderBase):
         elif pin is PINS.DT:
             self.dt_state = pin_value
 
-    def button_callback(self, channel: int):
+    def gpio_btn_pin_callback(self, channel: int):
         pin = PINS(channel)
         value = GPIO.input(pin)
 
@@ -97,61 +97,41 @@ class RotaryEncoderGPIOModel(RotaryEncoderBase):
 
 
 @dataclass
-class RotaryEncoderFakeModel(RotaryEncoderBase):
+class RotaryEncoderView:
+    rotary_encoder: RotaryEncoderBase
     steps: int = 15
     pressed_time: float = field(repr=False, init=False, default=0)
     timeout: float = 0.1
 
     def __post_init__(self):
+        # Make sure that timeouts are cleared if the button overrides
+        def clear_timeout(*args, **kwargs):
+            self._timeout = None
+        self.rotary_encoder.register_press_callback(clear_timeout)
         self.rotation = 0
         self.rotation_per_step = 2 * math.pi / self.steps
         self._timeout = None
 
-    def press_temp(self):
-        self.pressed = True
+    def _press(self, timeout):
         self.pressed_time = time.time()
-        self._timeout = self.timeout
-        for cb in self.cb_press:
-            cb(self.pressed)
+        self.rotary_encoder.press(not self.rotary_encoder.pressed)
+        self._timeout = timeout
+
+    def press_temp(self, timeout=None):
+        if timeout is None:
+            timeout = self.timeout
+        self._press(timeout)
 
     def press_toggle(self):
-        self.pressed = not self.pressed
-        self._timeout = float("inf")
-        for cb in self.cb_press:
-            cb(self.pressed)
-
-    def rotate(self, clockwise: bool):
-        self.rotation += 1 if clockwise else -1
-        for cb in self.cb_rotation:
-            cb(clockwise)
-
-
-@dataclass
-class RotaryEncoderView:
-    rotary_encoder: RotaryEncoderBase
+        self._press(None)
 
     def render(self) -> np.ndarray:
         disp = np.zeros((200, 200, 3), dtype=np.uint8)
         radius = 40 if self.rotary_encoder.pressed else 50
-        rotation = self.rotation * self.rotation_per_step
+        if self._timeout and time.time() - self.pressed_time > self._timeout:
+            self.press_toggle()
+        rotation = self.rotary_encoder.rotation * self.rotation_per_step
         pt2 = np.array([100, 100]) + np.array([math.sin(rotation), -math.cos(rotation)]) * radius
         cv2.line(disp, (100, 100), tuple(pt2.astype(np.int16)), (123, 50, 168), thickness=3, lineType=cv2.LINE_AA)
         cv2.circle(disp, (100, 100), radius, (255, 255, 255), thickness=5, lineType=cv2.LINE_AA)
         return disp
-
-    @classmethod
-    def main(cls):
-        rot = cls()
-        print(f"Use the arrow keys: {list(KeyCode)} to rotate and press the rotary encoder.")
-        k = None
-        while k != ord("q"):
-            if k == KeyCode.LEFT_ARROW:
-                rot.rotate(False)
-            elif k == KeyCode.RIGHT_ARROW:
-                rot.rotate(True)
-            elif k == KeyCode.DOWN_ARROW:
-                rot.press()
-            elif k == KeyCode.UP_ARROW:
-                rot.press_toggle()
-            cv2.imshow("rotary_encoder_mock", rot.render())
-            k = cv2.waitKeyEx(1)
