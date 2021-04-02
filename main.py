@@ -1,4 +1,5 @@
 from oled import OLED
+from oled.display.display import DisplayModelViewer
 from oled.fonts import put_string
 from datetime import datetime
 from enum import Enum, auto
@@ -81,6 +82,7 @@ class Globals:
 
 def main_display():
     with OLED() as display:
+        view = DisplayModelViewer(display)
         while Globals.running:
             display.clear()
             put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None)
@@ -112,7 +114,7 @@ def main_display():
                         put_string(display.buffer, 12, 26 + i * 12, str(notification), bg=None)
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
-            Globals.buffer_oled = display.refresh()
+            Globals.buffer_oled = view.render()
 
 
 def pixels_update_buffer():
