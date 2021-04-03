@@ -8,7 +8,10 @@ import cv2
 
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
-parser.add_argument("--no-viewer", action="store_true", help="Do not open an X-window that shows the display's currently shown image")
+parser.add_argument(
+    "--no-viewer",
+    action="store_true",
+    help="Do not open an X-window that shows the display's currently shown image")
 args = parser.parse_args()
 show_viewer = not args.no_viewer
 

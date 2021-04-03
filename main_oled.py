@@ -9,15 +9,23 @@ import time
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument("--no-viewer", action="store_true", help="Do not open an X-window that shows the display's currently shown image")
+parser.add_argument(
+    "--no-viewer", action="store_true",
+    help="Do not open an X-window that shows the display's currently shown image")
 args = parser.parse_args()
 show_viewer = not args.no_viewer
 
 
 def main():
     with OLED() as display:
-        image_smol1 = cv2.cvtColor(cv2.resize(cv2.imread("test-image.png"), dsize=(OLED_WIDTH, OLED_HEIGHT), interpolation=cv2.INTER_AREA).astype(np.float32) / 256., cv2.COLOR_BGR2RGB)
-        image_smol2 = cv2.cvtColor(cv2.resize(cv2.imread("test-image2.png"), dsize=(OLED_WIDTH, OLED_HEIGHT), interpolation=cv2.INTER_AREA).astype(np.float32) / 256., cv2.COLOR_BGR2RGB)
+        image_smol1 = cv2.cvtColor(cv2.resize(
+            cv2.imread("test-image.png"),
+            dsize=(OLED_WIDTH, OLED_HEIGHT),
+            interpolation=cv2.INTER_AREA).astype(np.float32) / 256., cv2.COLOR_BGR2RGB)
+        image_smol2 = cv2.cvtColor(cv2.resize(
+            cv2.imread("test-image2.png"),
+            dsize=(OLED_WIDTH, OLED_HEIGHT),
+            interpolation=cv2.INTER_AREA).astype(np.float32) / 256., cv2.COLOR_BGR2RGB)
         start_time = time.time()
 
         if show_viewer:

@@ -42,7 +42,6 @@ class TestCache(unittest.TestCase):
         self.assertEqual(2, m.call_count)
 
 
-
 class TestIP(unittest.TestCase):
     def test_ip_is_sane(self):
         ips = util.get_ips()
