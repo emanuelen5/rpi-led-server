@@ -1,17 +1,17 @@
-import cv2
 import numpy as np
 from typing import List, Tuple, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from adafruit_pypixelbuf import PixelBuf
+from .model import LED_BaseModel
 
 
 ND_LIKE = Union[Tuple[int, int, int], List[int], np.ndarray]
 
 
 @dataclass
-class LED_Model(PixelBuf):
+class LED_Model(PixelBuf, LED_BaseModel):
     pixel_count: int
-    buffer: np.ndarray = field(init=False, repr=False)
+    brightness: float = 1.0
 
     def __post_init__(self):
         self.buffer = np.zeros((self.pixel_count, 3), np.uint8)
@@ -36,20 +36,5 @@ class LED_Model(PixelBuf):
         pass
 
 
-@dataclass
-class LED_ModelView(LED_Model):
-    brightness: float = 1.0
-    scale: Tuple[int, int] = (6, 6)
-
-    def show(self) -> np.ndarray:
-        return self.refresh()
-
-    def refresh(self) -> np.ndarray:
-        frame_buffer = cv2.resize(
-            self.buffer.reshape((1, self.pixel_count, 3)), dsize=None,
-            fx=self.scale[1], fy=self.scale[0], interpolation=cv2.INTER_NEAREST)
-        return self.brightness / 255.0 * frame_buffer
-
-
-def create_pixels(num_pixels: int = 50, brightness: float = 1.0, scale: Tuple[int, int] = (200, 20), *args, **kwargs):
-    return LED_ModelView(num_pixels, brightness=brightness, scale=scale)
+def create_pixels(num_pixels: int = 50, brightness: float = 1.0, *args, **kwargs):
+    return LED_Model(num_pixels, brightness=brightness)

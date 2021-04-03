@@ -1,0 +1,19 @@
+from typing import Union, Tuple, List
+import numpy as np
+from abc import ABC
+from dataclasses import dataclass, field
+
+
+ND_LIKE = Union[Tuple[int, int, int], List[int], np.ndarray]
+
+
+@dataclass
+class LED_BaseModel(ABC):
+    buffer: np.ndarray = field(init=False, repr=False)
+
+    def __len__(self): ...
+    def __getitem__(self, item: int): ...
+    def __setitem__(self, key: int, value: ND_LIKE): ...
+    def __iter__(self): ...
+    def fill(self, value: ND_LIKE): ...
+    def show(self): ...

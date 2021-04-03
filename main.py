@@ -73,6 +73,8 @@ class Globals:
     led_settings: LED_Settings = LED_Settings()
     show_viewer: bool = not args.no_viewer
     running: bool = True
+    last_interaction: float = time.time()
+    screen_saver_time: float = 600
     buffer_oled: np.ndarray = np.empty((1, 1, 1))
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
     buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
@@ -87,6 +89,9 @@ def main_display():
         view = DisplayModelViewer(display)
         while Globals.running:
             display.clear()
+            if time.time() - Globals.last_interaction > Globals.screen_saver_time:
+                time.sleep(0.2)
+                continue
             put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None)
             if Globals.select_mode == SelectMode.LED_EFFECT:
                 put_string(display.buffer, 0, 12, f"={Globals.led_mode.name}", fg=(1., 1., 1.), bg=None)
@@ -121,7 +126,7 @@ def main_display():
 
 
 def pixels_update_buffer():
-    Globals.buffer_leds = original_show()
+    Globals.buffer_leds = pixels.render()
 
 
 original_show = pixels.show
@@ -147,6 +152,7 @@ def main_leds():
 
 
 def on_rotate(cw: bool):
+    Globals.last_interaction = time.time()
     if Globals.select_mode == SelectMode.LED_BRIGHTNESS:
         diff = Globals.led_settings.brightness * 0.05 + 0.001
         diff = diff if cw else -diff
@@ -169,6 +175,7 @@ def on_rotate(cw: bool):
 
 
 def on_press(down: bool):
+    Globals.last_interaction = time.time()
     if down:
         Globals.select_mode = cycle_enum(Globals.select_mode)
 
