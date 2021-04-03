@@ -1,6 +1,7 @@
 #include <bcm2835.h>
 #include <stdio.h>
 #include "ssd1331.h"
+#include <string.h>
 
 void command(char cmd) {
     bcm2835_gpio_write(DC, LOW);
@@ -9,6 +10,7 @@ void command(char cmd) {
 
 void SSD1331_begin()
 {
+    bcm2835_init();
     bcm2835_gpio_fsel(RST, BCM2835_GPIO_FSEL_OUTP);
     bcm2835_gpio_fsel(DC, BCM2835_GPIO_FSEL_OUTP);
 
@@ -66,10 +68,13 @@ void SSD1331_begin()
 }
 
 void SSD1331_end() {
-	bcm2835_spi_end();
+    bcm2835_spi_end();
 }
 
+
+uint16_t tmp_buf[OLED_HEIGHT * OLED_WIDTH];
 void SSD1331_display(uint16_t *buffer) {
+    memcpy(tmp_buf, buffer, OLED_WIDTH * OLED_HEIGHT * 2);
     command(SET_COLUMN_ADDRESS);
     command(0);         //cloumn start address
     command(OLED_WIDTH - 1); //cloumn end address
@@ -77,5 +82,5 @@ void SSD1331_display(uint16_t *buffer) {
     command(0);         //page atart address
     command(OLED_HEIGHT - 1); //page end address
     bcm2835_gpio_write(DC, HIGH);
-    bcm2835_spi_transfern((char*) buffer, OLED_WIDTH * OLED_HEIGHT * 2);
+    bcm2835_spi_transfern((char*) tmp_buf, OLED_WIDTH * OLED_HEIGHT * 2);
 }

@@ -29,19 +29,22 @@ class DisplayModel:
 
 
 @dataclass
-class DisplayModelView(DisplayModel):
+class DisplayModelViewer:
+    model: DisplayModel
     scaling: float = 6.0
     rendered_buffer: np.ndarray = field(init=False, default=None, repr=False)
 
     def __post_init__(self):
         # Pre-compute grid
-        scaled_buffer = cv2.resize(self.buffer, fx=self.scaling, fy=self.scaling, dsize=None)
+        scaled_buffer = cv2.resize(self.model.buffer, fx=self.scaling, fy=self.scaling, dsize=None)
         y, x, z = scaled_buffer.shape
         X, Y, _ = np.meshgrid(range(x), range(y), range(z))
         self.grid = (Y % self.scaling == self.scaling - 1) | (X % self.scaling == self.scaling - 1)
 
     def render(self) -> np.ndarray:
+        self.model.refresh()
         buffer = liboled.get_buffer().astype(np.float32)
+        buffer = cv2.cvtColor(buffer, cv2.COLOR_RGB2BGR)
         buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
         buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
         buffer[:, :, 2] = buffer[:, :, 2] * 1.0 / 0xF8
@@ -52,7 +55,3 @@ class DisplayModelView(DisplayModel):
         buffer = cv2.copyMakeBorder(buffer, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=(1., 1., 1.))
         self.rendered_buffer = buffer
         return buffer
-
-    def refresh(self) -> np.ndarray:
-        super().refresh()
-        return self.render()
