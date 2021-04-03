@@ -41,16 +41,6 @@ class TestSmoke(unittest.TestCase):
         arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3)).astype(dtype=np.float32)
         liboled.display(arr)
 
-    @parameterized.expand(
-        [(i,) for i in [np.uint8, np.uint16, np.uint32, np.uint64, np.int8, np.int16, np.int32, np.int64]],
-        custom_name_func
-    )
-    @unittest.skip("Might not need strict type checking")
-    def test_can_not_take_other_types(self, _dtype):
-        arr = np.random.random((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3))
-        with self.assertRaises(ValueError):
-            liboled.display(arr)
-
     def test_get_buffer(self):
         liboled.display(self.arr)
         arr = liboled.get_buffer()
