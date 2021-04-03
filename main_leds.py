@@ -1,26 +1,26 @@
 import time
 from argparse import ArgumentParser
 from leds import create_pixels
-from leds.mock import LED_ModelView
+from leds.view import LED_ModelView
 from leds.color import rainbow_cycle
 import sys
 import cv2
 
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
+parser.add_argument("--no-viewer", action="store_true", help="Do not open an X-window that shows the display's currently shown image")
 args = parser.parse_args()
+show_viewer = not args.no_viewer
 
 # The number of NeoPixels
 num_pixels = args.pixel_count
 
 pixels = create_pixels(num_pixels=50)
-
-
-if isinstance(pixels, LED_ModelView):
-    show_orig = pixels.show
+if show_viewer:
+    view = LED_ModelView(pixels, scale=(200, 20))
 
     def show_interactive():
-        cv2.imshow("LEDS", show_orig())
+        cv2.imshow("LEDS", view.render())
         k = cv2.waitKeyEx(1)
         if k == ord('q'):
             sys.exit(0)
