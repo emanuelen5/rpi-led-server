@@ -11,6 +11,7 @@ from rotary_encoder import RotaryEncoder
 from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
 from util import KeyCode
+import util
 from dataclasses import dataclass
 import time
 import cv2
@@ -36,6 +37,7 @@ class MainMode(Enum):
     DEMO = auto()
     BLANK = auto()
     NOTIFICATIONS = auto()
+    STATUS = auto()
 
 
 class SelectMode(Enum):
@@ -120,6 +122,9 @@ def main_display():
                     for i, notification in enumerate(Globals.notifications):
                         put_string(display.buffer, 0, 26 + i * 12, f"{i+1}:", bg=None)
                         put_string(display.buffer, 12, 26 + i * 12, str(notification), bg=None)
+            elif Globals.main_mode == MainMode.STATUS:
+                put_string(display.buffer, 0, 26, f"IP:{', '.join(util.get_ips())}")
+                put_string(display.buffer, 0, 38, util.get_uptime())
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
             if Globals.show_viewer:
