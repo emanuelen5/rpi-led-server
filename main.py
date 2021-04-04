@@ -10,6 +10,7 @@ from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
 from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
+import queue
 from util import KeyCode
 import util
 from dataclasses import dataclass
@@ -81,7 +82,7 @@ class Globals:
     buffer_oled: np.ndarray = np.empty((1, 1, 1))
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
     buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
-    keypress_rotenc = []
+    keypress_rotenc = queue.Queue()
     notifications = ["Homeassistant"]
 
 
@@ -191,7 +192,10 @@ def main_rotenc():
 
     view = RotaryEncoderView(rotenc)
     while Globals.running:
-        k = Globals.keypress_rotenc.pop() if len(Globals.keypress_rotenc) else -1
+        try:
+            k = Globals.keypress_rotenc.get_nowait()
+        except queue.Empty:
+            k = -1
         if k in (KeyCode.LEFT_ARROW, ord('h')):
             rotenc.rotate(False)
         elif k in (KeyCode.RIGHT_ARROW, ord('l')):
@@ -231,7 +235,7 @@ if Globals.show_viewer:
             Globals.running = False
             break
         else:
-            Globals.keypress_rotenc.append(k)
+            Globals.keypress_rotenc.put(k)
         cv2.imshow(WINDOW_LEDS, Globals.buffer_leds)
         cv2.imshow(WINDOW_ROTENC, Globals.buffer_rotenc)
         cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
