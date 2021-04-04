@@ -9,6 +9,7 @@ if [ $# -lt 2 ]; then
 	usage
 fi
 
+# See: http://blog.pkh.me/p/21-high-quality-gif-with-ffmpeg.html and https://superuser.com/a/556031/585199
 palette="/tmp/palette.png"
 
 filters="fps=20"
