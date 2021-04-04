@@ -79,4 +79,11 @@ make all # This both builds and runs all tests
 python main_oled.py # Draws some test strings
 python rotary_encoder.py # Reacts to twisting and button presses
 python main_leds.py # Runs a color wheel on the LEDs
+python main.py # Combined application
 ```
+
+<figure class="video_container">
+  <video controls="true" allowfullscreen="true" poster="doc/usage-video-poster.png">
+    <source src="doc/usage-video.mp4" type="video/mp4">
+  </video>
+</figure>
