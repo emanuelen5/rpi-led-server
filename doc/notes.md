@@ -2,3 +2,8 @@
 ```bash
 ffmpeg.exe -ss 3.6 -to 33 -i 2021-04-04_17-37-39.mkv -filter:v "crop=1050:800:170:150" -vol 0 output.mp4 -y
 ```
+
+## Creating GIF with [gifify.sh](./gifify.sh)
+```bash
+./gifify.sh input.mp4 output.gif
+```
