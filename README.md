@@ -79,4 +79,8 @@ make all # This both builds and runs all tests
 python main_oled.py # Draws some test strings
 python rotary_encoder.py # Reacts to twisting and button presses
 python main_leds.py # Runs a color wheel on the LEDs
+python main.py # Combined application
 ```
+
+#### Example usage
+![Usage video](doc/usage-video-poster.gif)
