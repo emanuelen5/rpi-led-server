@@ -83,4 +83,4 @@ python main.py # Combined application
 ```
 
 #### Example usage
-[![Usage video](doc/usage-video-poster.png)](doc/usage-video.mp4)
+![Usage video](doc/usage-video-poster.gif)
