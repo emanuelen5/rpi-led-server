@@ -82,8 +82,6 @@ class Globals:
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
     buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
     keypress_rotenc = []
-    keypress_oled = []
-    keypress_leds = []
     notifications = ["Homeassistant"]
 
 
@@ -129,6 +127,8 @@ def main_display():
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
             if Globals.show_viewer:
                 Globals.buffer_oled = view.render()
+            else:
+                time.sleep(0.2)
 
 
 def main_leds():
@@ -183,10 +183,14 @@ def on_press(down: bool):
 
 def main_rotenc():
     rotenc = RotaryEncoder()
-    view = RotaryEncoderView(rotenc)
     rotenc.register_rotation_callback(on_rotate)
     rotenc.register_press_callback(on_press)
-    while Globals.running and Globals.show_viewer:
+
+    if not Globals.show_viewer:
+        return
+
+    view = RotaryEncoderView(rotenc)
+    while Globals.running:
         k = Globals.keypress_rotenc.pop() if len(Globals.keypress_rotenc) else -1
         if k in (KeyCode.LEFT_ARROW, ord('h')):
             rotenc.rotate(False)
@@ -196,10 +200,7 @@ def main_rotenc():
             view.press_temp()
         elif k in (KeyCode.UP_ARROW, ord('k')):
             view.press_toggle()
-        if Globals.show_viewer:
-            Globals.buffer_rotenc = view.render()
-    while Globals.running:
-        time.sleep(0.2)
+        Globals.buffer_rotenc = view.render()
 
 
 t1 = Thread(target=main_leds, daemon=True)
@@ -231,8 +232,6 @@ if Globals.show_viewer:
             break
         else:
             Globals.keypress_rotenc.append(k)
-            Globals.keypress_oled.append(k)
-            Globals.keypress_leds.append(k)
         cv2.imshow(WINDOW_LEDS, Globals.buffer_leds)
         cv2.imshow(WINDOW_ROTENC, Globals.buffer_rotenc)
         cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
