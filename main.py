@@ -139,18 +139,17 @@ def main_leds():
         if Globals.led_mode == LED_Mode.COLOR:
             pixels.fill((np.array(list(wheel(Globals.led_settings.color_index))) * Globals.led_settings.brightness).astype(
                 np.uint8))
-            if Globals.show_viewer:
-                Globals.buffer_leds = view.render()
-            else:
-                time.sleep(0.2)
         elif Globals.led_mode == LED_Mode.RAINBOW:
             c_effect_strength = 255 / num_pixels * Globals.led_settings.strength
             for i in range(num_pixels):
                 pixel_index = (i * c_effect_strength) + Globals.led_settings.cycle_index + Globals.led_settings.color_index
                 pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
-            pixels.show()
             Globals.led_settings.cycle_index += Globals.led_settings.speed
-        time.sleep(0.001)
+        pixels.show()
+        if Globals.show_viewer:
+            Globals.buffer_leds = view.render()
+        else:
+            time.sleep(0.2)
 
 
 def on_rotate(cw: bool):
