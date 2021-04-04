@@ -82,5 +82,5 @@ python main_leds.py # Runs a color wheel on the LEDs
 python main.py # Combined application
 ```
 
-
+#### Example usage
 [![Usage video](doc/usage-video-poster.png)](doc/usage-video.mp4)
