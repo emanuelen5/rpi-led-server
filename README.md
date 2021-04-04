@@ -82,8 +82,5 @@ python main_leds.py # Runs a color wheel on the LEDs
 python main.py # Combined application
 ```
 
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true" poster="doc/usage-video-poster.png">
-    <source src="doc/usage-video.mp4" type="video/mp4">
-  </video>
-</figure>
+
+[![Usage video](doc/usage-video-poster.png)](doc/usage-video.mp4)
