@@ -100,17 +100,19 @@ def main_display():
             Globals.header_line.string = f"SEL: {Globals.select_mode.name}"
             Globals.header_line.render(display.buffer, 0, fg=(1., 1., 1.), bg=None)
             if Globals.select_mode == SelectMode.LED_EFFECT:
-                put_string(display.buffer, 0, 12, f"={Globals.led_mode.name}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_mode.name}"
             elif Globals.select_mode == SelectMode.EFFECT_SPEED:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.speed:5.4f}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.speed:5.4f}"
             elif Globals.select_mode == SelectMode.EFFECT_STRENGTH:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.strength:5.4f}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.strength:5.4f}"
             elif Globals.select_mode == SelectMode.LED_BRIGHTNESS:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.brightness:5.3f}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.brightness:5.3f}"
             elif Globals.select_mode == SelectMode.LED_COLOR:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.color_index:3d}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.color_index:3d}"
             elif Globals.select_mode == SelectMode.MAIN_WINDOW:
-                put_string(display.buffer, 0, 12, f"={Globals.main_mode.name}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.main_mode.name}"
+            Globals.value_line.string = value_line
+            Globals.value_line.render(display.buffer, 12, fg=(1., 1., 1.), bg=None)
             if Globals.main_mode == MainMode.DEMO:
                 dt = datetime.now()
                 put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
