@@ -7,7 +7,7 @@ if __name__ == "__main__":
     buffer = np.zeros((64, 300, 3), dtype=np.float32)
     s = ScrollingLines([
         ScrollingLine(f"{s.name}....................", s) for s in ScrollType
-    ])
+    ] + [ScrollingLine("SHORT TEXT")])
     split_line = 128
     while True:
         buffer[:, :, :] = 0

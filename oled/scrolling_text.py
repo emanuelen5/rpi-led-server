@@ -23,7 +23,7 @@ class LineState(Enum):
 @dataclass
 class ScrollingLine:
     string: str = ""
-    scroll_type: ScrollType = ScrollType.ROLLING
+    scroll_type: ScrollType = ScrollType.SCROLL_RESET
     speed: float = 20.0
     pause_time: float = 3.0
     font: Font = Font1206
@@ -35,7 +35,7 @@ class ScrollingLine:
         self._start_time = time.time()
         self._state = state
 
-    def render(self, img: np.ndarray, offset_y: int = 0) -> np.ndarray:
+    def render(self, img: np.ndarray, offset_y: int = 0, **kwargs) -> np.ndarray:
         width = img.shape[1]
         now = time.time()
         state_time = now - self._start_time
@@ -43,7 +43,9 @@ class ScrollingLine:
         end_offset = width - line_length
         if self._state == LineState.INIT:
             self._offset = 0
-            if state_time > self.pause_time:
+            if line_length <= width:
+                self.set_state(LineState.INIT)
+            elif state_time > self.pause_time:
                 self.set_state(LineState.SCROLLING_OVER)
         elif self._state == LineState.SCROLLING_OVER:
             self._offset = max(end_offset, -int(self.speed * state_time))
@@ -61,14 +63,14 @@ class ScrollingLine:
         elif self._state == LineState.SCROLLING_ROLLOVER:
             next_offset = -line_length - self.font.width
             self._offset = max(next_offset, end_offset-int(self.speed * state_time))
-            self.font.put_string(img, self._offset + line_length + self.font.width, offset_y, self.string)
+            self.font.put_string(img, self._offset + line_length + self.font.width, offset_y, self.string, **kwargs)
             if self._offset <= next_offset:
                 self.set_state(LineState.INIT)
         elif self._state == LineState.SCROLLING_BACK:
             self._offset = min(0, int(self.speed * state_time) + end_offset)
             if self._offset >= 0:
                 self.set_state(LineState.INIT)
-        self.font.put_string(img, self._offset, offset_y, self.string)
+        self.font.put_string(img, self._offset, offset_y, self.string, **kwargs)
         return img
 
 
