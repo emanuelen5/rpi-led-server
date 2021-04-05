@@ -7,12 +7,21 @@ import numpy as np
 
 
 class ScrollType(Enum):
+    """
+    The different ways that a line can scroll horizontally
+    """
+    # Scrolls all the way to the right and then immediately resets to init
     SCROLL_RESET = auto()
+    # Scrolls all the way to the right and then rolls over the edge
     ROLLING = auto()
+    # Scrolls all the way to the right and then scrolls back
     REVERSING = auto()
 
 
 class LineState(Enum):
+    """
+    The different parts during scrolling
+    """
     INIT = auto()
     SCROLLING_OVER = auto()
     SCROLLING_ROLLOVER = auto()
@@ -22,6 +31,9 @@ class LineState(Enum):
 
 @dataclass
 class ScrollingLine:
+    """
+    A line that scrolls horizontally to reveal overflowed text
+    """
     _string: str = ""
     scroll_type: ScrollType = ScrollType.SCROLL_RESET
     speed: float = 20.0
@@ -86,6 +98,9 @@ class ScrollingLine:
 
 @dataclass
 class ScrollingLines:
+    """
+    A set of lines that can individually scroll horizontally, and as a group scroll vertically
+    """
     lines: List[ScrollingLine] = field(default_factory=list)
     offset_y: int = 0
 

@@ -20,6 +20,14 @@ class DisplayModel:
         self.buffer[self.buffer > 1.0] = 1.0
         liboled.display(self.buffer)
 
+    def get_buffer(self) -> np.ndarray:
+        buffer = liboled.get_buffer().astype(np.float32)
+        buffer = cv2.cvtColor(buffer, cv2.COLOR_RGB2BGR)
+        buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
+        buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
+        buffer[:, :, 2] = buffer[:, :, 2] * 1.0 / 0xF8
+        return buffer
+
     def open(self):
         liboled.init()
 
@@ -30,6 +38,9 @@ class DisplayModel:
 
 @dataclass
 class DisplayModelViewer:
+    """
+    Renders a bitmap representation of the Display Model.
+    """
     model: DisplayModel
     scaling: float = 6.0
     rendered_buffer: np.ndarray = field(init=False, default=None, repr=False)
@@ -43,11 +54,7 @@ class DisplayModelViewer:
 
     def render(self) -> np.ndarray:
         self.model.refresh()
-        buffer = liboled.get_buffer().astype(np.float32)
-        buffer = cv2.cvtColor(buffer, cv2.COLOR_RGB2BGR)
-        buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
-        buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
-        buffer[:, :, 2] = buffer[:, :, 2] * 1.0 / 0xF8
+        buffer = self.model.get_buffer()
         buffer = cv2.resize(buffer, fx=self.scaling, fy=self.scaling, dsize=None, interpolation=cv2.INTER_NEAREST)
         # Make grid
         buffer[self.grid] = 0.1 + buffer[self.grid] * 0.9

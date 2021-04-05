@@ -5,6 +5,9 @@ import numpy as np
 
 @dataclass
 class Bitmap:
+    """
+    A binary bitmap that can be pasted (blitted) into other (larger) bitmaps
+    """
     width: int
     height: int
     pixels: List[int]
@@ -359,6 +362,9 @@ symbols = {
 
 @dataclass
 class Font:
+    """
+    A lookup table that maps characters to bitmaps.
+    """
     width: int
     height: int
     lookup: Dict[str, List[int]]
