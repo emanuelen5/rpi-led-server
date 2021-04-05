@@ -379,7 +379,7 @@ class Font:
             self, img: np.ndarray, x: int, y: int, s: str,
             fg: Tuple[float, float, float] = (1., 1., 1.), bg: Tuple[float, float, float] = (0., 0., 0.)
     ) -> np.ndarray:
-        return put_string(img, x, y, s, fg, bg, self)
+        return put_string(img, x, y, s, font=self, fg=fg, bg=bg)
 
 
 Font1206 = Font(6, 12, Font1206)

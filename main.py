@@ -1,6 +1,7 @@
 from oled import OLED
 from oled.display.display import DisplayModelViewer
 from oled.fonts import put_string
+from oled.scrolling_text import ScrollingLine, ScrollingLines
 from datetime import datetime
 from enum import Enum, auto
 from leds import create_pixels
@@ -83,7 +84,13 @@ class Globals:
     buffer_leds: np.ndarray = np.empty((1, 1, 1))
     buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
     keypress_rotenc = queue.Queue()
-    notifications = ["Homeassistant"]
+    header_line = ScrollingLine("SEL: ")
+    value_line = ScrollingLine("=")
+    status_lines = ScrollingLines([
+        ScrollingLine(),
+        ScrollingLine()
+    ], 24)
+    notifications = [ScrollingLine("1: Homeassistant")]
 
 
 def main_display():
@@ -94,19 +101,22 @@ def main_display():
             if time.time() - Globals.last_interaction > Globals.screen_saver_time:
                 time.sleep(0.2)
                 continue
-            put_string(display.buffer, 0, 0,  f"SEL:{Globals.select_mode.name}", fg=(1., 1., 1.), bg=None)
+            Globals.header_line.string = f"SEL: {Globals.select_mode.name}"
+            Globals.header_line.render(display.buffer, 0, fg=(1., 1., 1.), bg=None)
             if Globals.select_mode == SelectMode.LED_EFFECT:
-                put_string(display.buffer, 0, 12, f"={Globals.led_mode.name}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_mode.name}"
             elif Globals.select_mode == SelectMode.EFFECT_SPEED:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.speed:5.4f}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.speed:5.4f}"
             elif Globals.select_mode == SelectMode.EFFECT_STRENGTH:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.strength:5.4f}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.strength:5.4f}"
             elif Globals.select_mode == SelectMode.LED_BRIGHTNESS:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.brightness:5.3f}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.brightness:5.3f}"
             elif Globals.select_mode == SelectMode.LED_COLOR:
-                put_string(display.buffer, 0, 12, f"={Globals.led_settings.color_index:3d}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.led_settings.color_index:3d}"
             elif Globals.select_mode == SelectMode.MAIN_WINDOW:
-                put_string(display.buffer, 0, 12, f"={Globals.main_mode.name}", fg=(1., 1., 1.), bg=None)
+                value_line = f"={Globals.main_mode.name}"
+            Globals.value_line.string = value_line
+            Globals.value_line.render(display.buffer, 12, fg=(1., 1., 1.), bg=None)
             if Globals.main_mode == MainMode.DEMO:
                 dt = datetime.now()
                 put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
@@ -119,11 +129,11 @@ def main_display():
                     put_string(display.buffer, 0, 26, "No notifications", fg=(0., 1., 0.))
                 else:
                     for i, notification in enumerate(Globals.notifications):
-                        put_string(display.buffer, 0, 26 + i * 12, f"{i+1}:", bg=None)
-                        put_string(display.buffer, 12, 26 + i * 12, str(notification), bg=None)
+                        notification.render(display.buffer, 26 + i * 12, bg=None)
             elif Globals.main_mode == MainMode.STATUS:
-                put_string(display.buffer, 0, 26, f"IP:{', '.join(util.get_ips())}")
-                put_string(display.buffer, 0, 38, util.get_uptime())
+                Globals.status_lines.lines[0].string = f"IP:{', '.join(util.get_ips())}"
+                Globals.status_lines.lines[1].string = util.get_uptime()
+                Globals.status_lines.render(display.buffer)
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
             if Globals.show_viewer:
