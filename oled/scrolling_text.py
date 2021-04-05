@@ -22,7 +22,7 @@ class LineState(Enum):
 
 @dataclass
 class ScrollingLine:
-    string: str = ""
+    _string: str = ""
     scroll_type: ScrollType = ScrollType.SCROLL_RESET
     speed: float = 20.0
     pause_time: float = 3.0
@@ -30,6 +30,16 @@ class ScrollingLine:
     _state: LineState = LineState.INIT
     _start_time: float = field(init=False, repr=False, compare=False, default_factory=time.time)
     _offset: int = field(init=False, default=0)
+
+    @property
+    def string(self):
+        return self._string
+
+    @string.setter
+    def string(self, v):
+        if len(self.string) != len(v):
+            self.set_state(LineState.INIT)
+        self._string = v
 
     def set_state(self, state: LineState):
         self._start_time = time.time()
