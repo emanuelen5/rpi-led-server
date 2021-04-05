@@ -7,13 +7,15 @@ import numpy as np
 
 
 class ScrollType(Enum):
+    SCROLL_RESET = auto()
     ROLLING = auto()
     REVERSING = auto()
 
 
 class LineState(Enum):
     INIT = auto()
-    SCROLLING = auto()
+    SCROLLING_OVER = auto()
+    SCROLLING_TO_END = auto()
     SCROLLING_ROLLOVER = auto()
     SCROLLING_BACK = auto()
     END = auto()
@@ -23,7 +25,8 @@ class LineState(Enum):
 class ScrollingLine:
     string: str = ""
     scroll_type: ScrollType = ScrollType.ROLLING
-    line_time: float = 5.0
+    speed: float = 20.0
+    pause_time: float = 1.0
     font: Font = Font1206
     _state: LineState = LineState.INIT
     _start_time: float = field(init=False, repr=False, compare=False, default_factory=time.time)
@@ -33,19 +36,24 @@ class ScrollingLine:
         now = time.time()
         state_time = now - self._start_time
         if self._state == LineState.INIT:
-            if state_time > self.line_time/5:
-                self.set_state(LineState.SCROLLING)
-        elif self._state == LineState.SCROLLING:
-            if state_time > self.line_time/5:
+            if state_time > self.pause_time:
+                self.set_state(LineState.SCROLLING_OVER)
+        elif self._state == LineState.SCROLLING_OVER:
+            line_Length = self.font.width * len(self.string)
+            if self._offset <= -line_Length:
+                self.set_state(LineState.END)
+        elif self._state == LineState.SCROLLING_TO_END:
+            line_Length = self.font.width * len(self.string)
+            if self._offset <= -line_Length:
                 self.set_state(LineState.END)
         elif self._state == LineState.END:
-            if state_time > self.line_time/5:
+            if state_time > self.pause_time:
                 if self.scroll_type == ScrollType.ROLLING:
                     self.set_state(LineState.SCROLLING_ROLLOVER)
                 elif self.scroll_type == ScrollType.REVERSING:
                     self.set_state(LineState.SCROLLING_BACK)
         elif self._state in (LineState.SCROLLING_ROLLOVER, LineState.SCROLLING_BACK):
-            if state_time > self.line_time/5:
+            if state_time > self.pause_time:
                 self.set_state(LineState.INIT)
 
     def set_state(self, state: LineState):
@@ -53,16 +61,22 @@ class ScrollingLine:
         self._state = state
 
     def render(self, img: np.ndarray, offset_y: int = 0) -> np.ndarray:
+        now = time.time()
+        state_time = now - self._start_time
+        line_Length = self.font.width * len(self.string)
         if self._state == LineState.INIT:
-            self.font.put_string(img, 0, offset_y, self.string)
-        elif self._state == LineState.SCROLLING:
-            self.font.put_string(img, -30, offset_y, self.string)
+            self._offset = 0
+        elif self._state == LineState.SCROLLING_OVER:
+            self._offset = max(-line_Length, -int(self.speed * state_time))
+        elif self._state == LineState.SCROLLING_TO_END:
+            self._offset = max(-line_Length, -int(self.speed * state_time))
         elif self._state == LineState.END:
-            self.font.put_string(img, -50, offset_y, self.string)
+            self._offset = 0
         elif self._state == LineState.SCROLLING_ROLLOVER:
-            self.font.put_string(img, -50, offset_y, self.string)
+            self._offset = 0
         elif self._state == LineState.SCROLLING_BACK:
-            self.font.put_string(img, -50, offset_y, self.string)
+            self._offset = 0
+        self.font.put_string(img, self._offset, offset_y, self.string)
         return img
 
 
