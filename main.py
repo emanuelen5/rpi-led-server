@@ -1,7 +1,7 @@
 from oled import OLED
 from oled.display.display import DisplayModelViewer
 from oled.fonts import put_string
-from oled.scrolling_text import ScrollingLine
+from oled.scrolling_text import ScrollingLine, ScrollingLines
 from datetime import datetime
 from enum import Enum, auto
 from leds import create_pixels
@@ -86,6 +86,10 @@ class Globals:
     keypress_rotenc = queue.Queue()
     header_line = ScrollingLine("SEL: ")
     value_line = ScrollingLine("=")
+    status_lines = ScrollingLines([
+        ScrollingLine(),
+        ScrollingLine()
+    ], 24)
     notifications = [ScrollingLine("1: Homeassistant")]
 
 
@@ -127,8 +131,9 @@ def main_display():
                     for i, notification in enumerate(Globals.notifications):
                         notification.render(display.buffer, 26 + i * 12, bg=None)
             elif Globals.main_mode == MainMode.STATUS:
-                put_string(display.buffer, 0, 26, f"IP:{', '.join(util.get_ips())}")
-                put_string(display.buffer, 0, 38, util.get_uptime())
+                Globals.status_lines.lines[0].string = f"IP:{', '.join(util.get_ips())}"
+                Globals.status_lines.lines[1].string = util.get_uptime()
+                Globals.status_lines.render(display.buffer)
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
             if Globals.show_viewer:

@@ -87,9 +87,10 @@ class ScrollingLine:
 @dataclass
 class ScrollingLines:
     lines: List[ScrollingLine] = field(default_factory=list)
+    offset_y: int = 0
 
     def render(self, img: np.ndarray) -> np.ndarray:
-        offset_y = 0
+        offset_y = self.offset_y
         for line in self.lines:
             line.render(img, offset_y)
             offset_y += line.font.height
