@@ -12,6 +12,9 @@ from rotary_encoder import RotaryEncoder
 from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
 import queue
+from functools import partial
+import subprocess
+import sys
 from util import KeyCode
 import util
 from dataclasses import dataclass
@@ -22,6 +25,7 @@ import numpy as np
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
 parser.add_argument("--no-viewer", action="store_true", help="Do not open a viewer with a render of the model state")
+parser.add_argument("--demo", action="store_true", help="Automatically step through modes")
 args = parser.parse_args()
 
 # The number of NeoPixels
@@ -217,10 +221,40 @@ def main_rotenc():
         Globals.buffer_rotenc = view.render()
 
 
+def demo():
+    shell_cmd = partial(subprocess.run, encoding="utf-8", shell=True, capture_output=True)
+
+    def keypress(_winid: int, keys: str, sleep_time: float = 0.5, count: int = 1):
+        if not Globals.running:
+            sys.exit(0)
+        print(f"Sending key strokes: {keys}")
+        shell_cmd(f"xdotool key --delay {sleep_time} --repeat {count} --window {_winid} --clearmodifiers {keys}")
+        time.sleep(0.5)
+
+    # p = shell_cmd("xdotool search --name 'ROTARY_ENCODER'")
+    # winid = p.stdout.strip()
+    winid = 0
+    print(f"ROTARY_ENCODER window ID: {winid}")
+    keypress = partial(keypress, winid)
+
+    while True:
+        keypress("l", count=4)
+        keypress("j")
+
+        # Brightness
+        keypress("h", count=30)
+        keypress("l", count=30)
+
+        # Mode
+        keypress("j")
+        keypress("h", count=30)
+        keypress("l", count=30)
+
+
 t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
-threads = (t1, t2, t3)
+threads = [t1, t2, t3]
 for t in threads:
     t.start()
 
@@ -237,6 +271,11 @@ if Globals.show_viewer:
     cv2.moveWindow(WINDOW_LEDS, 200, 650)
     cv2.moveWindow(WINDOW_ROTENC, 780, 370)
     cv2.moveWindow(WINDOW_OLED, 200, 200)
+
+    if args.demo:
+        t = Thread(target=demo, daemon=True)
+        t.start()
+        threads.append(t)
 
     print("Press q to exit")
     while True:
