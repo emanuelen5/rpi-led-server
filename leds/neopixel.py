@@ -40,6 +40,6 @@ class LED_Model(NeoPixel, LED_BaseModel):
 
 
 def create_pixels(num_pixels: int = 50, brightness: float = 0.1, pin=pixel_pin, order=ORDER, **kwargs):
-    return NeoPixel(
+    return LED_Model(
         pin, num_pixels, brightness=brightness, auto_write=False, pixel_order=order, **kwargs
     )
