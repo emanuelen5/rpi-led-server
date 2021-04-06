@@ -45,7 +45,7 @@ class RotaryEncoderBase:
 
 @dataclass
 class RotaryEncoderGPIOModel(RotaryEncoderBase):
-    dt_state: bool = None
+    _dt_state: bool = None
 
     def __post_init__(self):
         GPIO.setmode(GPIO.BCM)
@@ -53,7 +53,7 @@ class RotaryEncoderGPIOModel(RotaryEncoderBase):
         GPIO.setup(PINS.DT, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(PINS.BTN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        self.dt_state = GPIO.input(PINS.DT)
+        self._dt_state = GPIO.input(PINS.DT)
         self.pressed = GPIO.input(PINS.BTN)
 
         GPIO.add_event_detect(PINS.CLK, GPIO.BOTH, callback=self.gpio_rotate_pin_callback, bouncetime=5)
@@ -70,10 +70,10 @@ class RotaryEncoderGPIOModel(RotaryEncoderBase):
             logger.debug(f"{pin} - falling")
 
         if pin is PINS.CLK:
-            was_clockwise = self.dt_state != pin_value
+            was_clockwise = self._dt_state != pin_value
             self.rotate(was_clockwise)
         elif pin is PINS.DT:
-            self.dt_state = pin_value
+            self._dt_state = pin_value
 
     def gpio_btn_pin_callback(self, channel: int):
         pin = PINS(channel)
