@@ -18,11 +18,13 @@ show_viewer = not args.no_viewer
 # The number of NeoPixels
 num_pixels = args.pixel_count
 
-pixels = create_pixels(num_pixels=50)
+pixels = create_pixels(num_pixels=50, brightness=1.0)
 if show_viewer:
     view = LED_ModelView(pixels, scale=(200, 20))
+    original_show = pixels.show
 
     def show_interactive():
+        original_show()
         cv2.imshow("LEDS", view.render())
         k = cv2.waitKeyEx(1)
         if k == ord('q'):
