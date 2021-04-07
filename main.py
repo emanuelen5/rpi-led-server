@@ -12,6 +12,9 @@ from rotary_encoder import RotaryEncoder
 from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
 import queue
+from functools import partial
+import subprocess
+import sys
 from util import KeyCode
 import util
 from dataclasses import dataclass
@@ -22,6 +25,7 @@ import numpy as np
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
 parser.add_argument("--no-viewer", action="store_true", help="Do not open a viewer with a render of the model state")
+parser.add_argument("--demo", action="store_true", help="Automatically step through modes")
 args = parser.parse_args()
 
 # The number of NeoPixels
@@ -217,10 +221,63 @@ def main_rotenc():
         Globals.buffer_rotenc = view.render()
 
 
+def demo():
+    shell_cmd = partial(subprocess.run, encoding="utf-8", shell=True, capture_output=True)
+
+    def keypress(_winid: int, keys: str, sleep_time: int = 0.03, count: int = 1):
+        p = shell_cmd("xdotool getactivewindow")
+        active_winid = int(p.stdout.strip())
+        if (not Globals.running) or active_winid != _winid:
+            print("Exiting demo thread")
+            sys.exit(0)
+        repeat_str = f" x{count}" if count > 1 else ""
+        print(f"Sending key strokes: {keys}{repeat_str}")
+        for _ in range(count):
+            shell_cmd(f"xdotool key --window 0 --clearmodifiers {keys}")
+            time.sleep(sleep_time)
+        time.sleep(1.0)
+
+    p = shell_cmd("xdotool search --name 'ROTARY_ENCODER'")
+    winid = int(p.stdout.strip())
+    shell_cmd(f"xdotool windowactivate {winid}")
+    time.sleep(0.1)
+    keypress = partial(keypress, winid)
+
+    time.sleep(0.5)
+
+    while True:
+        keypress("l", sleep_time=1.0, count=3)
+
+        # Brightness
+        keypress("j")
+        keypress("h", count=30)
+        keypress("l", count=40)
+
+        # Phase
+        keypress("j")
+        keypress("h", count=30)
+        keypress("l", count=30)
+
+        # LED effect
+        keypress("j")
+        keypress("l")
+
+        # LED effect speed
+        keypress("j")
+        keypress("l", count=30)
+
+        # LED effect strength
+        keypress("j")
+        keypress("h", count=30)
+
+        # Back to main menu
+        keypress("j")
+
+
 t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
-threads = (t1, t2, t3)
+threads = [t1, t2, t3]
 for t in threads:
     t.start()
 
@@ -237,6 +294,11 @@ if Globals.show_viewer:
     cv2.moveWindow(WINDOW_LEDS, 200, 650)
     cv2.moveWindow(WINDOW_ROTENC, 780, 370)
     cv2.moveWindow(WINDOW_OLED, 200, 200)
+
+    if args.demo:
+        t = Thread(target=demo, daemon=True)
+        t.start()
+        threads.append(t)
 
     print("Press q to exit")
     while True:
