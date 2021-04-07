@@ -4,6 +4,7 @@ from typing import Union, Tuple, List
 from neopixel import GRB, NeoPixel
 import numpy as np
 from .model import LED_BaseModel
+from dataclasses import dataclass, field
 
 
 ND_LIKE = Union[Tuple[int, int, int], List[int], np.ndarray]
@@ -18,23 +19,30 @@ pixel_pin = board.D18
 ORDER = GRB
 
 
-class LED_Model(NeoPixel, LED_BaseModel):
+@dataclass
+class LED_Model(LED_BaseModel):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.buffer = np.zeros((len(self), 3), np.uint8)
+        self.pixels = NeoPixel(*args, **kwargs)
+        self.buffer = np.zeros((len(self.pixels), 3), np.uint8)
 
     def __getitem__(self, item: int):
         return self.buffer[item]
 
     def __setitem__(self, key: int, value: ND_LIKE):
-        super().__setitem__(key, value)
+        self.pixels[key] = value
         self.buffer[key] = value
 
     def __iter__(self):
         return (px for px in self.buffer)
 
+    def __len__(self) -> int:
+        return len(self.pixels)
+
+    def show(self):
+        return self.pixels.show()
+
     def fill(self, value: ND_LIKE):
-        super().fill(value)
+        self.pixels.fill(value)
         for i in range(len(self)):
             self[i] = value
 

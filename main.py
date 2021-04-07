@@ -237,10 +237,17 @@ def demo():
             time.sleep(sleep_time)
         time.sleep(1.0)
 
-    p = shell_cmd("xdotool search --name 'ROTARY_ENCODER'")
-    winid = int(p.stdout.strip())
+    for _ in range(50):
+        p = shell_cmd("xdotool search --name 'ROTARY_ENCODER'")
+        try:
+            winid = int(p.stdout.strip())
+            break
+        except ValueError:
+            pass
+        time.sleep(0.1)
+    else:
+        raise RuntimeError("Could not find the OpenCV window")
     shell_cmd(f"xdotool windowactivate {winid}")
-    time.sleep(0.1)
     keypress = partial(keypress, winid)
 
     time.sleep(0.5)
