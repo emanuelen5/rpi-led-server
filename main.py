@@ -151,7 +151,11 @@ def main_leds():
     pixels.fill((0, 0, 0))
     pixels.show()
     view = LED_ModelView(pixels, scale=(200, 20))
+    last_time = time.time()
     while Globals.running:
+        current_time = time.time()
+        time_since_last = current_time - last_time
+        last_time = current_time
         if Globals.led_mode == LED_Mode.COLOR:
             pixels.fill((np.array(list(wheel(Globals.led_settings.color_index))) * Globals.led_settings.brightness).astype(
                 np.uint8))
@@ -160,7 +164,7 @@ def main_leds():
             for i in range(num_pixels):
                 pixel_index = (i * c_effect_strength) + Globals.led_settings.cycle_index + Globals.led_settings.color_index
                 pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
-            Globals.led_settings.cycle_index += Globals.led_settings.speed
+            Globals.led_settings.cycle_index += Globals.led_settings.speed * time_since_last * 512
         pixels.show()
         if Globals.show_viewer:
             Globals.buffer_leds = view.render()
