@@ -13,6 +13,8 @@ from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
 import queue
 from functools import partial
+import logging
+import pickle
 import subprocess
 import sys
 from util import KeyCode
@@ -22,9 +24,14 @@ import time
 import cv2
 import numpy as np
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
 parser.add_argument("--no-viewer", action="store_true", help="Do not open a viewer with a render of the model state")
+parser.add_argument("--new-session", action="store_true",
+                    help="Do not try to load settings from previous session at start")
 parser.add_argument("--demo", action="store_true", help="Automatically step through modes")
 args = parser.parse_args()
 
@@ -95,6 +102,35 @@ class Globals:
         ScrollingLine()
     ], 24)
     notifications = [ScrollingLine("1: Homeassistant")]
+    SESSION_FILE = ".led-server.session"
+
+    @classmethod
+    def save(cls, filename: str = None):
+        if filename is None:
+            filename = cls.SESSION_FILE
+        logger.info(f"Saving current session to {filename}")
+        with open(filename, "wb") as f:
+            pickle.dump({k: getattr(cls, k) for k in (
+                "led_mode", "main_mode", "select_mode",
+                "led_settings", "show_viewer", "screen_saver_time")
+            }, f)
+
+    @classmethod
+    def load(cls, filename: str = None):
+        if filename is None:
+            filename = cls.SESSION_FILE
+        logger.info(f"Restoring previous session from {filename}")
+        with open(filename, "rb") as f:
+            v = pickle.load(f)
+            for k, v in v.items():
+                setattr(cls, k, v)
+
+
+if not args.new_session:
+    try:
+        Globals.load()
+    except FileNotFoundError:
+        logger.info("No previous led session file found")
 
 
 def main_display():
@@ -314,6 +350,7 @@ if Globals.show_viewer:
     while True:
         k = cv2.waitKeyEx(1)
         if k == ord('q'):
+            Globals.save()
             Globals.running = False
             break
         else:
