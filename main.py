@@ -103,6 +103,7 @@ def main_display():
         while Globals.running:
             display.clear()
             if time.time() - Globals.last_interaction > Globals.screen_saver_time:
+                display.refresh()
                 time.sleep(0.2)
                 continue
             Globals.header_line.string = f"SEL: {Globals.select_mode.name}"
@@ -143,7 +144,7 @@ def main_display():
             if Globals.show_viewer:
                 Globals.buffer_oled = view.render()
             else:
-                time.sleep(0.2)
+                display.refresh()
 
 
 def main_leds():
@@ -163,8 +164,6 @@ def main_leds():
         pixels.show()
         if Globals.show_viewer:
             Globals.buffer_leds = view.render()
-        else:
-            time.sleep(0.2)
 
 
 def on_rotate(cw: bool):
@@ -322,7 +321,7 @@ if Globals.show_viewer:
 else:
     try:
         while True:
-            pass
+            time.sleep(0.5)
     except KeyboardInterrupt:
         pass
 
