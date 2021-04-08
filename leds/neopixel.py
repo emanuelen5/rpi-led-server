@@ -4,7 +4,7 @@ from typing import Union, Tuple, List
 from neopixel import GRB, NeoPixel
 import numpy as np
 from .model import LED_BaseModel
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 ND_LIKE = Union[Tuple[int, int, int], List[int], np.ndarray]

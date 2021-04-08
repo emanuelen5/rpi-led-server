@@ -110,5 +110,3 @@ class ScrollingLines:
             line.render(img, offset_y)
             offset_y += line.font.height
         return img
-
-
