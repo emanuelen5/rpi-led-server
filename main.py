@@ -15,6 +15,7 @@ import queue
 from functools import partial
 import logging
 import pickle
+import signal
 import subprocess
 import sys
 from util import KeyCode
@@ -320,6 +321,14 @@ def demo():
         keypress("j")
 
 
+def stop_nice(_signal, _frametype):
+    Globals.running = False
+    Globals.save()
+
+
+signal.signal(signal.SIGTERM, stop_nice)
+
+
 t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
@@ -347,11 +356,11 @@ if Globals.show_viewer:
         threads.append(t)
 
     print("Press q to exit")
-    while True:
+    while Globals.running:
         k = cv2.waitKeyEx(1)
         if k == ord('q'):
-            Globals.save()
             Globals.running = False
+            Globals.save()
             break
         else:
             Globals.keypress_rotenc.put(k)
