@@ -32,7 +32,7 @@ class BaseTestRotaryEncoder(BaseGPIO_Test):
 
         # Make sure we are at a known state first
         self.set_pin(PINS.CLK, False)
-        self.rotenc.gpio_rotate_pin_callback(PINS.CLK)
+        self.rotenc.gpio_clk_pin_callback(PINS.CLK)
 
 
 class TestCallbacks(BaseTestRotaryEncoder):
@@ -45,16 +45,14 @@ class TestCallbacks(BaseTestRotaryEncoder):
 
     def test_calls_rotate_callback_on_cw(self):
         self.set_pin(PINS.DT, False)
-        self.rotenc.gpio_rotate_pin_callback(PINS.DT)
         self.set_pin(PINS.CLK, True)
-        self.rotenc.gpio_rotate_pin_callback(PINS.CLK)
+        self.rotenc.gpio_clk_pin_callback(PINS.CLK)
         self.cb_rotation.assert_called_once_with(True)
 
     def test_calls_rotate_callback_on_ccw(self):
         self.set_pin(PINS.DT, True)
-        self.rotenc.gpio_rotate_pin_callback(PINS.DT)
         self.set_pin(PINS.CLK, True)
-        self.rotenc.gpio_rotate_pin_callback(PINS.CLK)
+        self.rotenc.gpio_clk_pin_callback(PINS.CLK)
         self.cb_rotation.assert_called_once_with(False)
 
     def test_press_down_runs_cb(self):

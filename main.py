@@ -324,6 +324,7 @@ def demo():
 def stop_nice(_signal, _frametype):
     Globals.running = False
     Globals.save()
+    sys.exit(0)
 
 
 signal.signal(signal.SIGTERM, stop_nice)
