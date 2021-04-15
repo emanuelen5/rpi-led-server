@@ -24,6 +24,7 @@ from dataclasses import dataclass
 import time
 import cv2
 import numpy as np
+import yappi
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -184,6 +185,8 @@ def main_display():
                 display.refresh()
 
 
+RENDER_TIME=0.01
+
 def main_leds():
     pixels.fill((0, 0, 0))
     pixels.show()
@@ -192,19 +195,22 @@ def main_leds():
     while Globals.running:
         current_time = time.time()
         time_since_last = current_time - last_time
-        last_time = current_time
-        if Globals.led_mode == LED_Mode.COLOR:
-            pixels.fill((np.array(list(wheel(Globals.led_settings.color_index))) * Globals.led_settings.brightness).astype(
-                np.uint8))
-        elif Globals.led_mode == LED_Mode.RAINBOW:
-            c_effect_strength = 255 / num_pixels * Globals.led_settings.strength
-            for i in range(num_pixels):
-                pixel_index = (i * c_effect_strength) + Globals.led_settings.cycle_index + Globals.led_settings.color_index
-                pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
-            Globals.led_settings.cycle_index += Globals.led_settings.speed * time_since_last * 512
-        pixels.show()
-        if Globals.show_viewer:
-            Globals.buffer_leds = view.render()
+        if time_since_last > RENDER_TIME/2:
+            if Globals.led_mode == LED_Mode.COLOR:
+                pixels.fill((np.array(list(wheel(Globals.led_settings.color_index))) * Globals.led_settings.brightness).astype(
+                    np.uint8))
+            elif Globals.led_mode == LED_Mode.RAINBOW:
+                c_effect_strength = 255 / num_pixels * Globals.led_settings.strength
+                for i in range(num_pixels):
+                    pixel_index = (i * c_effect_strength) + Globals.led_settings.cycle_index + Globals.led_settings.color_index
+                    pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
+                Globals.led_settings.cycle_index += Globals.led_settings.speed * time_since_last * 512
+            pixels.show()
+            if Globals.show_viewer:
+                Globals.buffer_leds = view.render()
+            last_time = current_time
+        else:
+            time.sleep(RENDER_TIME - time_since_last)
 
 
 def on_rotate(cw: bool):
@@ -242,10 +248,15 @@ def main_rotenc():
     rotenc.register_press_callback(on_press)
 
     if not Globals.show_viewer:
+        while Globals.running:
+            time.sleep(0.5)
         return
 
     view = RotaryEncoderView(rotenc)
+    last_render_time = 0
     while Globals.running:
+        time_to_render = time.time() - last_render_time > 1./30
+
         try:
             k = Globals.keypress_rotenc.get_nowait()
         except queue.Empty:
@@ -258,7 +269,12 @@ def main_rotenc():
             view.press_temp()
         elif k in (KeyCode.UP_ARROW, ord('k')):
             view.press_toggle()
-        Globals.buffer_rotenc = view.render()
+        elif k == -1 and not time_to_render:
+            time.sleep(0.01)
+        
+        if time_to_render:
+            Globals.buffer_rotenc = view.render()
+            last_render_time = time.time()
 
 
 def demo():
@@ -334,8 +350,6 @@ t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
 threads = [t1, t2, t3]
-for t in threads:
-    t.start()
 
 if Globals.show_viewer:
     WINDOW_LEDS = "LEDS"
@@ -351,6 +365,10 @@ if Globals.show_viewer:
     cv2.moveWindow(WINDOW_ROTENC, 780, 370)
     cv2.moveWindow(WINDOW_OLED, 200, 200)
 
+    yappi.start()
+    for t in threads:
+        t.start()
+
     if args.demo:
         t = Thread(target=demo, daemon=True)
         t.start()
@@ -361,7 +379,7 @@ if Globals.show_viewer:
         k = cv2.waitKeyEx(1)
         if k == ord('q'):
             Globals.running = False
-            Globals.save()
+            # Globals.save()
             break
         else:
             Globals.keypress_rotenc.put(k)
@@ -370,8 +388,12 @@ if Globals.show_viewer:
         cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
 
 else:
+    yappi.start()
+    for t in threads:
+        t.start()
     try:
         while True:
+            print("Main thread sleeping...")
             time.sleep(0.5)
     except KeyboardInterrupt:
         pass
@@ -379,3 +401,10 @@ else:
 Globals.running = False
 for t in threads:
     t.join()
+yappi.stop()
+
+threads = yappi.get_thread_stats()
+for thread in threads:
+    print(f"Function stats for ({thread.name}) ({thread.id})")  # it is the Thread.__class__.__name__
+    yappi.get_func_stats(ctx_id=thread.id).print_all()
+
