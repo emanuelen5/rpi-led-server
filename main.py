@@ -1,9 +1,8 @@
 from oled import OLED
 from oled.display.display import DisplayModelViewer
 from oled.fonts import put_string
-from oled.scrolling_text import ScrollingLine, ScrollingLines
 from datetime import datetime
-from enum import Enum, auto
+from app.settings import Globals, SelectMode, MainMode, LED_Mode
 from leds import create_pixels
 from leds.view import LED_ModelView
 from leds.color import wheel
@@ -14,19 +13,18 @@ from threading import Thread
 import queue
 from functools import partial
 import logging
-import pickle
 import signal
 import subprocess
 import sys
-from util import KeyCode
-import util
-from dataclasses import dataclass
+from util import KeyCode, cycle_enum, get_uptime, get_ips
 import time
 import cv2
 import numpy as np
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 parser = ArgumentParser()
 parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
@@ -38,93 +36,9 @@ args = parser.parse_args()
 
 # The number of NeoPixels
 num_pixels = args.pixel_count
+Globals.show_viewer = not args.no_viewer
 
 pixels = create_pixels(num_pixels=num_pixels)
-
-
-class LED_Mode(Enum):
-    COLOR = auto()
-    RAINBOW = auto()
-
-
-class MainMode(Enum):
-    DEMO = auto()
-    BLANK = auto()
-    NOTIFICATIONS = auto()
-    STATUS = auto()
-
-
-class SelectMode(Enum):
-    MAIN_WINDOW = auto()
-    LED_BRIGHTNESS = auto()
-    LED_COLOR = auto()
-    LED_EFFECT = auto()
-    EFFECT_SPEED = auto()
-    EFFECT_STRENGTH = auto()
-
-
-@dataclass
-class LED_Settings:
-    brightness: float = 1.0
-    color_index: int = 0
-    cycle_index: int = 0
-    speed: float = 0
-    strength: float = 1.0
-
-
-def cycle_enum(enum_value: Enum, forwards: bool = True):
-    cls = enum_value.__class__
-    enums = list(cls)
-    idx = enums.index(enum_value)
-    if forwards:
-        idx_new = (idx + 1) % len(cls)
-    else:
-        idx_new = (idx - 1) % len(cls)
-    return enums[idx_new]
-
-
-class Globals:
-    led_mode = LED_Mode.COLOR
-    main_mode = MainMode.DEMO
-    select_mode = SelectMode.MAIN_WINDOW
-    led_settings: LED_Settings = LED_Settings()
-    show_viewer: bool = not args.no_viewer
-    running: bool = True
-    last_interaction: float = time.time()
-    screen_saver_time: float = 600
-    buffer_oled: np.ndarray = np.empty((1, 1, 1))
-    buffer_leds: np.ndarray = np.empty((1, 1, 1))
-    buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
-    keypress_rotenc = queue.Queue()
-    header_line = ScrollingLine("SEL: ")
-    value_line = ScrollingLine("=")
-    status_lines = ScrollingLines([
-        ScrollingLine(),
-        ScrollingLine()
-    ], 24)
-    notifications = [ScrollingLine("1: Homeassistant")]
-    SESSION_FILE = ".led-server.session"
-
-    @classmethod
-    def save(cls, filename: str = None):
-        if filename is None:
-            filename = cls.SESSION_FILE
-        logger.info(f"Saving current session to {filename}")
-        with open(filename, "wb") as f:
-            pickle.dump({k: getattr(cls, k) for k in (
-                "led_mode", "main_mode", "select_mode",
-                "led_settings", "show_viewer", "screen_saver_time")
-            }, f)
-
-    @classmethod
-    def load(cls, filename: str = None):
-        if filename is None:
-            filename = cls.SESSION_FILE
-        logger.info(f"Restoring previous session from {filename}")
-        with open(filename, "rb") as f:
-            v = pickle.load(f)
-            for k, v in v.items():
-                setattr(cls, k, v)
 
 
 if not args.new_session:
@@ -173,8 +87,8 @@ def main_display():
                     for i, notification in enumerate(Globals.notifications):
                         notification.render(display.buffer, 26 + i * 12, bg=None)
             elif Globals.main_mode == MainMode.STATUS:
-                Globals.status_lines.lines[0].string = f"IP:{', '.join(util.get_ips())}"
-                Globals.status_lines.lines[1].string = util.get_uptime()
+                Globals.status_lines.lines[0].string = f"IP:{', '.join(get_ips())}"
+                Globals.status_lines.lines[1].string = get_uptime()
                 Globals.status_lines.render(display.buffer)
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)

@@ -7,3 +7,4 @@ fake-rpi; platform_machine != "armv7l"
 
 # For Neopixels
 adafruit-circuitpython-neopixel
+flask
