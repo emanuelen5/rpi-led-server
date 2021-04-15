@@ -1,6 +1,9 @@
-from enum import Enum
 import logging
+import sys
+from argparse import ArgumentParser
+from enum import Enum
 from pathlib import Path
+from app.settings import Globals
 from flask import Flask, request, abort, jsonify, redirect
 from werkzeug.exceptions import HTTPException
 
@@ -34,3 +37,24 @@ class ENDPOINTS(str, Enum):
 @app.route(ENDPOINTS.ROOT)
 def root():
     return redirect(ENDPOINTS.ROOT_HTML)
+
+
+def main():
+    print("Starting app", flush=True, file=sys.stderr)
+    parser = ArgumentParser()
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--new-session", action="store_true",
+                        help="Do not try to load settings from previous session at start")
+    args = parser.parse_args()
+    if not args.new_session:
+        try:
+            Globals.load()
+        except FileNotFoundError:
+            logger.info("No previous led session file found")
+
+    app.run(args.host, port=args.port, debug=True)
+
+
+if __name__ == "__main__":
+    main()
