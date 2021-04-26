@@ -6,6 +6,7 @@ from pathlib import Path
 from app.settings import Globals
 from flask import Flask, request, abort, jsonify, redirect
 from werkzeug.exceptions import HTTPException
+from util import cycle_enum
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +29,7 @@ def handle_error(e):
 class ENDPOINTS(str, Enum):
     ROOT = "/"
     ROOT_HTML = "/index.html"
-    LAMP = "/lamp"
+    SETTINGS = "/settings"
 
     def __str__(self):
         return self.value
@@ -37,6 +38,17 @@ class ENDPOINTS(str, Enum):
 @app.route(ENDPOINTS.ROOT)
 def root():
     return redirect(ENDPOINTS.ROOT_HTML)
+
+
+@app.route(ENDPOINTS.SETTINGS)
+def get_settings():
+    Globals.main_mode = cycle_enum(Globals.main_mode)
+    return {
+        "led_settings": Globals.led_settings,
+        "main_mode": Globals.main_mode.name,
+        "select_mode": Globals.select_mode.name,
+        "led_mode": Globals.led_mode.name
+    }
 
 
 def main():
