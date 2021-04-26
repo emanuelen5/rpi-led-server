@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-static_path = str(Path(__file__).parent / "static")
+static_path = str(Path(__file__).parent.joinpath("webserver/.build"))
 app = Flask(__name__, static_url_path='', static_folder=static_path)
 
 
