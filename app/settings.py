@@ -1,10 +1,11 @@
 import logging
 import pickle
-import queue
 import time
+from leds import NeoPixel
+from rotary_encoder import RotaryEncoder
+from oled.display import Display
 from dataclasses import dataclass
 from enum import Enum, auto
-import numpy as np
 from oled.scrolling_text import ScrollingLines, ScrollingLine
 
 logger = logging.getLogger(__name__)
@@ -49,10 +50,9 @@ class Globals:
     running: bool = True
     last_interaction: float = time.time()
     screen_saver_time: float = 600
-    buffer_oled: np.ndarray = np.empty((1, 1, 1))
-    buffer_leds: np.ndarray = np.empty((1, 1, 1))
-    buffer_rotenc: np.ndarray = np.empty((1, 1, 1))
-    keypress_rotenc = queue.Queue()
+    oled_model: Display
+    led_model: NeoPixel
+    rotenc_model: RotaryEncoder
     header_line = ScrollingLine("SEL: ")
     value_line = ScrollingLine("=")
     status_lines = ScrollingLines([

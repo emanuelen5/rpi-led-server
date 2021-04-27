@@ -10,7 +10,6 @@ from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
 from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
-import queue
 from functools import partial
 import logging
 import signal
@@ -38,8 +37,6 @@ args = parser.parse_args()
 num_pixels = args.pixel_count
 Globals.show_viewer = not args.no_viewer
 
-pixels = create_pixels(num_pixels=num_pixels)
-
 
 if not args.new_session:
     try:
@@ -50,7 +47,7 @@ if not args.new_session:
 
 def main_display():
     with OLED() as display:
-        view = DisplayModelViewer(display)
+        Globals.oled_model = display
         while Globals.running:
             display.clear()
             if time.time() - Globals.last_interaction > Globals.screen_saver_time:
@@ -92,16 +89,14 @@ def main_display():
                 Globals.status_lines.render(display.buffer)
             if len(Globals.notifications):
                 put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
-            if Globals.show_viewer:
-                Globals.buffer_oled = view.render()
-            else:
-                display.refresh()
+            display.refresh()
 
 
 def main_leds():
+    pixels = create_pixels(num_pixels=num_pixels)
+    Globals.led_model = pixels
     pixels.fill((0, 0, 0))
     pixels.show()
-    view = LED_ModelView(pixels, scale=(200, 20))
     last_time = time.time()
     while Globals.running:
         current_time = time.time()
@@ -117,8 +112,6 @@ def main_leds():
                 pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
             Globals.led_settings.cycle_index += Globals.led_settings.speed * time_since_last * 512
         pixels.show()
-        if Globals.show_viewer:
-            Globals.buffer_leds = view.render()
 
 
 def on_rotate(cw: bool):
@@ -152,27 +145,9 @@ def on_press(down: bool):
 
 def main_rotenc():
     rotenc = RotaryEncoder()
+    Globals.rotenc_model = rotenc
     rotenc.register_rotation_callback(on_rotate)
     rotenc.register_press_callback(on_press)
-
-    if not Globals.show_viewer:
-        return
-
-    view = RotaryEncoderView(rotenc)
-    while Globals.running:
-        try:
-            k = Globals.keypress_rotenc.get_nowait()
-        except queue.Empty:
-            k = -1
-        if k in (KeyCode.LEFT_ARROW, ord('h')):
-            rotenc.rotate(False)
-        elif k in (KeyCode.RIGHT_ARROW, ord('l')):
-            rotenc.rotate(True)
-        elif k in (KeyCode.DOWN_ARROW, ord('j')):
-            view.press_temp()
-        elif k in (KeyCode.UP_ARROW, ord('k')):
-            view.press_toggle()
-        Globals.buffer_rotenc = view.render()
 
 
 def demo():
@@ -265,6 +240,10 @@ if Globals.show_viewer:
     cv2.moveWindow(WINDOW_ROTENC, 780, 370)
     cv2.moveWindow(WINDOW_OLED, 200, 200)
 
+    oled_view = DisplayModelViewer(Globals.oled_model)
+    led_view = LED_ModelView(Globals.led_model, scale=(200, 20))
+    rotenc_view = RotaryEncoderView(Globals.rotenc_model)
+
     if args.demo:
         t = Thread(target=demo, daemon=True)
         t.start()
@@ -277,11 +256,18 @@ if Globals.show_viewer:
             Globals.running = False
             Globals.save()
             break
-        else:
-            Globals.keypress_rotenc.put(k)
-        cv2.imshow(WINDOW_LEDS, Globals.buffer_leds)
-        cv2.imshow(WINDOW_ROTENC, Globals.buffer_rotenc)
-        cv2.imshow(WINDOW_OLED, Globals.buffer_oled)
+        elif k in (KeyCode.LEFT_ARROW, ord('h')):
+            Globals.rotenc_model.rotate(False)
+        elif k in (KeyCode.RIGHT_ARROW, ord('l')):
+            Globals.rotenc_model.rotate(True)
+        elif k in (KeyCode.DOWN_ARROW, ord('j')):
+            rotenc_view.press_temp()
+        elif k in (KeyCode.UP_ARROW, ord('k')):
+            rotenc_view.press_toggle()
+
+        cv2.imshow(WINDOW_LEDS, led_view.render())
+        cv2.imshow(WINDOW_ROTENC, rotenc_view.render())
+        cv2.imshow(WINDOW_OLED, oled_view.render())
 
 else:
     try:
