@@ -1,4 +1,5 @@
 import unittest
+import app.util
 import util
 from unittest.mock import MagicMock
 import time
@@ -44,7 +45,7 @@ class TestCache(unittest.TestCase):
 
 class TestIP(unittest.TestCase):
     def test_ip_is_sane(self):
-        ips = util.get_ips()
+        ips = app.util.get_ips()
         self.assertIsInstance(ips, tuple)
         for ip in ips:
             self.assertRegex(ip, r'^\d+\.\d+\.\d+\.\d+$')
