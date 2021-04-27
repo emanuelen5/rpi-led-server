@@ -160,16 +160,13 @@ t3 = Thread(target=main_rotenc, daemon=True)
 threads = [t1, t2, t3]
 for t in threads:
     t.start()
-else:
-    try:
-        while True:
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        pass
 
-Globals.running = False
-for t in threads:
-    t.join()
+
+@app.route("/shutdown", methods=("POST",))
+def shutdown():
+    Globals.running = False
+    for t in threads:
+        t.join()
 
 
 def main():
