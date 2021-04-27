@@ -55,7 +55,7 @@ def main_display():
                 time.sleep(0.2)
                 continue
             Globals.header_line.string = f"SEL: {Globals.select_mode.name}"
-            Globals.header_line.render(display.buffer, 0, fg=(1., 1., 1.), bg=None)
+            Globals.header_line.render(display.back_buffer, 0, fg=(1., 1., 1.), bg=None)
             if Globals.select_mode == SelectMode.LED_EFFECT:
                 value_line = f"={Globals.led_mode.name}"
             elif Globals.select_mode == SelectMode.EFFECT_SPEED:
@@ -69,26 +69,26 @@ def main_display():
             elif Globals.select_mode == SelectMode.MAIN_WINDOW:
                 value_line = f"={Globals.main_mode.name}"
             Globals.value_line.string = value_line
-            Globals.value_line.render(display.buffer, 12, fg=(1., 1., 1.), bg=None)
+            Globals.value_line.render(display.back_buffer, 12, fg=(1., 1., 1.), bg=None)
             if Globals.main_mode == MainMode.DEMO:
                 dt = datetime.now()
-                put_string(display.buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
-                put_string(display.buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(0., 0., 1.), bg=None, alpha=1)
-                put_string(display.buffer, 0, 46, "Emaus demo", bg=(0., 1., 1.), fg=None, alpha=0.7)
+                put_string(display.back_buffer, 0, 36, dt.strftime("%H:%M:%S.%f"), fg=(1., 0., 1.), bg=(1., 1., 1.), alpha=0.3)
+                put_string(display.back_buffer, 0, 26, dt.strftime("%Y-%m-%d"), fg=(0., 0., 1.), bg=None, alpha=1)
+                put_string(display.back_buffer, 0, 46, "Emaus demo", bg=(0., 1., 1.), fg=None, alpha=0.7)
             elif Globals.main_mode == MainMode.BLANK:
                 pass
             elif Globals.main_mode == MainMode.NOTIFICATIONS:
                 if len(Globals.notifications) == 0:
-                    put_string(display.buffer, 0, 26, "No notifications", fg=(0., 1., 0.))
+                    put_string(display.back_buffer, 0, 26, "No notifications", fg=(0., 1., 0.))
                 else:
                     for i, notification in enumerate(Globals.notifications):
-                        notification.render(display.buffer, 26 + i * 12, bg=None)
+                        notification.render(display.back_buffer, 26 + i * 12, bg=None)
             elif Globals.main_mode == MainMode.STATUS:
                 Globals.status_lines.lines[0].string = f"IP:{', '.join(get_ips())}"
                 Globals.status_lines.lines[1].string = get_uptime()
-                Globals.status_lines.render(display.buffer)
+                Globals.status_lines.render(display.back_buffer)
             if len(Globals.notifications):
-                put_string(display.buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
+                put_string(display.back_buffer, 90, 52, f"{len(Globals.notifications):1d}", fg=(0., 0., 1.), bg=None)
             display.refresh()
 
 
