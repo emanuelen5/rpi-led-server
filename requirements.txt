@@ -1,5 +1,6 @@
 numpy
 opencv-python
+python-dotenv
 
 # For GPIO access (rotary encoder)
 RPi.GPIO; platform_machine == "armv7l"

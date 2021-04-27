@@ -13,6 +13,9 @@ import sys
 from util import cycle_enum, get_uptime, get_ips
 import time
 import numpy as np
+import dotenv
+dotenv.load_dotenv()
+
 from webserver.server.routes import app
 
 
@@ -26,8 +29,6 @@ parser.add_argument("--new-session", action="store_true",
                     help="Do not try to load settings from previous session at start")
 parser.add_argument("--host", default="0.0.0.0")
 parser.add_argument("--port", type=int, default=5000)
-parser.add_argument("--new-session", action="store_true",
-                    help="Do not try to load settings from previous session at start")
 args = parser.parse_args()
 
 # The number of NeoPixels
