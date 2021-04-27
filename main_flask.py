@@ -1,26 +1,21 @@
-import os
 import app.app as app
 from app.settings import Globals
 import logging
 import sys
-import dotenv
-dotenv.load_dotenv()
 from webserver.server.routes import app as flask_app
+import resources
+from resources.util import get_env
+resources.init_dotenv()
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # The number of NeoPixels
-pixel_count_str = os.getenv("RPI_LED_SERVER_PIXEL_COUNT", 50)
-try:
-    PIXEL_COUNT = int(pixel_count_str)
-except TypeError:
-    logger.error(f"Could not interpret RPI_LED_SERVER_PIXEL_COUNT ({pixel_count_str}) as a number. Using default value.")
-    PIXEL_COUNT = 50
-NEW_SESSION = os.getenv("RPI_LED_SERVER_NEW_SESSION", False)
-PORT = os.getenv("RPI_LED_SERVER_NEW_SESSION", False)
-HOST = os.getenv("RPI_LED_SERVER_HOST", "0.0.0.0")
+PIXEL_COUNT = get_env("RPI_LED_SERVER_PIXEL_COUNT", 50, int)
+NEW_SESSION = get_env("RPI_LED_SERVER_NEW_SESSION", False, bool)
+PORT = get_env("RPI_LED_SERVER_PORT", 5000, int)
+HOST = get_env("RPI_LED_SERVER_HOST", "0.0.0.0")
 
 
 if not NEW_SESSION:
