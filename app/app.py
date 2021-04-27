@@ -1,48 +1,17 @@
 from oled import OLED
-from oled.display.display import DisplayModelViewer
-from oled.fonts import put_string
 from datetime import datetime
 from app.settings import Globals, SelectMode, MainMode, LED_Mode
 from leds import create_pixels
-from leds.view import LED_ModelView
 from leds.color import wheel
-from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
-from rotary_encoder.rotary_encoder import RotaryEncoderView
 from threading import Thread
-from functools import partial
-import logging
-import signal
-import subprocess
-import sys
-from util import KeyCode, cycle_enum, get_uptime, get_ips
+from util import cycle_enum
 import time
-import cv2
 import numpy as np
+from oled.fonts import put_string
+from .util import get_ips, get_uptime
 
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
-parser = ArgumentParser()
-parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
-parser.add_argument("--no-viewer", action="store_true", help="Do not open a viewer with a render of the model state")
-parser.add_argument("--new-session", action="store_true",
-                    help="Do not try to load settings from previous session at start")
-parser.add_argument("--demo", action="store_true", help="Automatically step through modes")
-args = parser.parse_args()
-
-# The number of NeoPixels
-num_pixels = args.pixel_count
-Globals.show_viewer = not args.no_viewer
-
-
-if not args.new_session:
-    try:
-        Globals.load()
-    except FileNotFoundError:
-        logger.info("No previous led session file found")
+threads = []
 
 
 def main_display():
@@ -92,7 +61,7 @@ def main_display():
             display.refresh()
 
 
-def main_leds():
+def main_leds(num_pixels: int):
     pixels = create_pixels(num_pixels=num_pixels)
     Globals.led_model = pixels
     pixels.fill((0, 0, 0))
@@ -150,132 +119,16 @@ def main_rotenc():
     rotenc.register_press_callback(on_press)
 
 
-def demo():
-    shell_cmd = partial(subprocess.run, encoding="utf-8", shell=True, capture_output=True)
-
-    def keypress(_winid: int, keys: str, sleep_time: int = 0.03, count: int = 1):
-        p = shell_cmd("xdotool getactivewindow")
-        active_winid = int(p.stdout.strip())
-        if (not Globals.running) or active_winid != _winid:
-            print("Exiting demo thread")
-            sys.exit(0)
-        repeat_str = f" x{count}" if count > 1 else ""
-        print(f"Sending key strokes: {keys}{repeat_str}")
-        for _ in range(count):
-            shell_cmd(f"xdotool key --window 0 --clearmodifiers {keys}")
-            time.sleep(sleep_time)
-        time.sleep(1.0)
-
-    for _ in range(50):
-        p = shell_cmd("xdotool search --name 'ROTARY_ENCODER'")
-        try:
-            winid = int(p.stdout.strip())
-            break
-        except ValueError:
-            pass
-        time.sleep(0.1)
-    else:
-        raise RuntimeError("Could not find the OpenCV window")
-    shell_cmd(f"xdotool windowactivate {winid}")
-    keypress = partial(keypress, winid)
-
-    time.sleep(0.5)
-
-    while True:
-        keypress("l", sleep_time=1.0, count=3)
-
-        # Brightness
-        keypress("j")
-        keypress("h", count=30)
-        keypress("l", count=40)
-
-        # Phase
-        keypress("j")
-        keypress("h", count=30)
-        keypress("l", count=30)
-
-        # LED effect
-        keypress("j")
-        keypress("l")
-
-        # LED effect speed
-        keypress("j")
-        keypress("l", count=30)
-
-        # LED effect strength
-        keypress("j")
-        keypress("h", count=30)
-
-        # Back to main menu
-        keypress("j")
-
-
-def stop_nice(_signal, _frametype):
-    Globals.running = False
-    Globals.save()
-    sys.exit(0)
-
-
-signal.signal(signal.SIGTERM, stop_nice)
-
-
-t1 = Thread(target=main_leds, daemon=True)
-t2 = Thread(target=main_display, daemon=True)
-t3 = Thread(target=main_rotenc, daemon=True)
-threads = [t1, t2, t3]
-for t in threads:
-    t.start()
-
-if Globals.show_viewer:
-    WINDOW_LEDS = "LEDS"
-    WINDOW_ROTENC = "ROTARY_ENCODER"
-    WINDOW_OLED = "OLED_DISPLAY"
-
-    cv2.namedWindow(WINDOW_LEDS)
-    cv2.namedWindow(WINDOW_ROTENC)
-    cv2.namedWindow(WINDOW_OLED)
-
-    time.sleep(0.5)  # Fix for making sure moveWindow actually bites
-    cv2.moveWindow(WINDOW_LEDS, 200, 650)
-    cv2.moveWindow(WINDOW_ROTENC, 780, 370)
-    cv2.moveWindow(WINDOW_OLED, 200, 200)
-
-    oled_view = DisplayModelViewer(Globals.oled_model)
-    led_view = LED_ModelView(Globals.led_model, scale=(200, 20))
-    rotenc_view = RotaryEncoderView(Globals.rotenc_model)
-
-    if args.demo:
-        t = Thread(target=demo, daemon=True)
+def start(num_pixels: int):
+    t1 = Thread(target=main_leds, args=(num_pixels, ), daemon=True)
+    t2 = Thread(target=main_display, daemon=True)
+    t3 = Thread(target=main_rotenc, daemon=True)
+    threads.extend([t1, t2, t3])
+    for t in threads:
         t.start()
-        threads.append(t)
 
-    print("Press q to exit")
-    while Globals.running:
-        k = cv2.waitKeyEx(1)
-        if k == ord('q'):
-            Globals.running = False
-            Globals.save()
-            break
-        elif k in (KeyCode.LEFT_ARROW, ord('h')):
-            Globals.rotenc_model.rotate(False)
-        elif k in (KeyCode.RIGHT_ARROW, ord('l')):
-            Globals.rotenc_model.rotate(True)
-        elif k in (KeyCode.DOWN_ARROW, ord('j')):
-            rotenc_view.press_temp()
-        elif k in (KeyCode.UP_ARROW, ord('k')):
-            rotenc_view.press_toggle()
 
-        cv2.imshow(WINDOW_LEDS, led_view.render())
-        cv2.imshow(WINDOW_ROTENC, rotenc_view.render())
-        cv2.imshow(WINDOW_OLED, oled_view.render())
-
-else:
-    try:
-        while True:
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        pass
-
-Globals.running = False
-for t in threads:
-    t.join()
+def stop():
+    Globals.running = False
+    for t in threads:
+        t.join()
