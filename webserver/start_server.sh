@@ -1,1 +1,2 @@
-gunicorn ../main_flask:app --bind=0.0.0.0:5000
+cd ..
+gunicorn main_flask:app --bind=0.0.0.0:5000

@@ -1,14 +1,13 @@
+import os
 from oled import OLED
 from oled.fonts import put_string
 from datetime import datetime
 from app.settings import Globals, SelectMode, MainMode, LED_Mode
 from leds import create_pixels
 from leds.color import wheel
-from argparse import ArgumentParser
 from rotary_encoder import RotaryEncoder
 from threading import Thread
 import logging
-import signal
 import sys
 from util import cycle_enum, get_uptime, get_ips
 import time
@@ -22,22 +21,21 @@ from webserver.server.routes import app
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-parser = ArgumentParser()
-parser.add_argument("--pixel-count", "-p", type=int, default=50, help="The number of pixels")
-parser.add_argument("--new-session", action="store_true",
-                    help="Do not try to load settings from previous session at start")
-parser.add_argument("--host", default="0.0.0.0")
-parser.add_argument("--port", type=int, default=5000)
-args = parser.parse_args()
-
 # The number of NeoPixels
-num_pixels = args.pixel_count
+try:
+    pixel_count_str = os.getenv("RPI_LED_SERVER_PIXEL_COUNT", 50)
+    PIXEL_COUNT = int(pixel_count_str)
+except TypeError:
+    logger.error(f"Could not interpret RPI_LED_SERVER_PIXEL_COUNT ({pixel_count_str}) as a number. Using default value.")
+    PIXEL_COUNT = 50
+NEW_SESSION = os.getenv("RPI_LED_SERVER_NEW_SESSION", False)
+PORT = os.getenv("RPI_LED_SERVER_NEW_SESSION", False)
+HOST = os.getenv("RPI_LED_SERVER_HOST", "0.0.0.0")
 
-pixels = create_pixels(num_pixels=num_pixels)
+pixels = create_pixels(num_pixels=PIXEL_COUNT)
 
 
-if not args.new_session:
+if not NEW_SESSION:
     try:
         Globals.load()
     except FileNotFoundError:
@@ -102,8 +100,8 @@ def main_leds():
             pixels.fill((np.array(list(wheel(Globals.led_settings.color_index))) * Globals.led_settings.brightness).astype(
                 np.uint8))
         elif Globals.led_mode == LED_Mode.RAINBOW:
-            c_effect_strength = 255 / num_pixels * Globals.led_settings.strength
-            for i in range(num_pixels):
+            c_effect_strength = 255 / PIXEL_COUNT * Globals.led_settings.strength
+            for i in range(PIXEL_COUNT):
                 pixel_index = (i * c_effect_strength) + Globals.led_settings.cycle_index + Globals.led_settings.color_index
                 pixels[i] = (np.array(list(wheel(int(pixel_index) & 0xff))) * Globals.led_settings.brightness).astype(np.uint8)
             Globals.led_settings.cycle_index += Globals.led_settings.speed * time_since_last * 512
@@ -145,15 +143,6 @@ def main_rotenc():
     rotenc.register_press_callback(on_press)
 
 
-def stop_nice(_signal, _frametype):
-    Globals.running = False
-    Globals.save()
-    sys.exit(0)
-
-
-signal.signal(signal.SIGTERM, stop_nice)
-
-
 t1 = Thread(target=main_leds, daemon=True)
 t2 = Thread(target=main_display, daemon=True)
 t3 = Thread(target=main_rotenc, daemon=True)
@@ -165,19 +154,20 @@ for t in threads:
 @app.route("/shutdown", methods=("POST",))
 def shutdown():
     Globals.running = False
+    Globals.save()
     for t in threads:
         t.join()
 
 
 def main():
     print("Starting app", flush=True, file=sys.stderr)
-    if not args.new_session:
+    if not NEW_SESSION:
         try:
             Globals.load()
         except FileNotFoundError:
             logger.info("No previous led session file found")
 
-    app.run(args.host, port=args.port, debug=True)
+    app.run(HOST, port=PORT, debug=True)
 
 
 if __name__ == "__main__":
