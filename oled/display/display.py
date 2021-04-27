@@ -6,7 +6,7 @@ import liboled
 
 @dataclass
 class DisplayModel:
-    front_buffer: np.ndarray = field(
+    _front_buffer: np.ndarray = field(
         default_factory=lambda: np.zeros((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3), dtype=np.float32))
     back_buffer: np.ndarray = field(
         default_factory=lambda: np.zeros((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3), dtype=np.float32))
@@ -21,10 +21,10 @@ class DisplayModel:
         """
         Copies the back-buffer into the front-buffer (shows it on the display)
         """
-        self.front_buffer[:, :, :] = self.back_buffer[:, :, :]
-        self.front_buffer[self.front_buffer < 0] = 0
-        self.front_buffer[self.front_buffer > 1.0] = 1.0
-        liboled.display(self.front_buffer)
+        self._front_buffer[:, :, :] = self.back_buffer[:, :, :]
+        self._front_buffer[self._front_buffer < 0] = 0
+        self._front_buffer[self._front_buffer > 1.0] = 1.0
+        liboled.display(self._front_buffer)
 
     def get_buffer(self) -> np.ndarray:
         front_buffer_from_display = liboled.get_buffer().astype(np.float32)
@@ -33,6 +33,9 @@ class DisplayModel:
         front_buffer_from_display[:, :, 1] = front_buffer_from_display[:, :, 1] * 1.0 / 0xFC
         front_buffer_from_display[:, :, 2] = front_buffer_from_display[:, :, 2] * 1.0 / 0xF8
         return front_buffer_from_display
+
+    def get_front_buffer(self) -> np.ndarray:
+        return self._front_buffer.copy()
 
     def open(self):
         liboled.init()
@@ -59,7 +62,7 @@ class DisplayModelViewer:
         self.grid = (Y % self.scaling == self.scaling - 1) | (X % self.scaling == self.scaling - 1)
 
     def render(self) -> np.ndarray:
-        buffer = self.model.front_buffer.copy()
+        buffer = self.model.get_front_buffer()
         buffer = cv2.resize(buffer, fx=self.scaling, fy=self.scaling, dsize=None, interpolation=cv2.INTER_NEAREST)
         # Make grid
         buffer[self.grid] = 0.1 + buffer[self.grid] * 0.9
