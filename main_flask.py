@@ -3,9 +3,9 @@ import app.app as app
 from app.settings import Globals
 import logging
 import sys
-from webserver.server.routes import app
 import dotenv
 dotenv.load_dotenv()
+from webserver.server.routes import app as flask_app
 
 
 logging.basicConfig(level=logging.INFO)
@@ -30,12 +30,12 @@ if not NEW_SESSION:
         logger.info("No previous led session file found")
 
 
-@app.before_first_request
+@flask_app.before_first_request
 def start():
     app.start(num_pixels=PIXEL_COUNT)
 
 
-@app.route("/shutdown", methods=("POST",))
+@flask_app.route("/shutdown", methods=("POST",))
 def shutdown():
     app.stop()
 
@@ -48,7 +48,7 @@ def main():
         except FileNotFoundError:
             logger.info("No previous led session file found")
 
-    app.run(HOST, port=PORT, debug=True)
+    flask_app.run(HOST, port=PORT, debug=True)
 
 
 if __name__ == "__main__":
