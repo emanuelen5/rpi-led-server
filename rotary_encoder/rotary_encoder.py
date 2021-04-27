@@ -64,9 +64,9 @@ class RotaryEncoderGPIOModel(RotaryEncoderBase):
         dt_pin_value = GPIO.input(PINS.DT)
 
         if pin_value:
-            logger.debug(f"CLK rising")
+            logger.debug("CLK rising")
         else:
-            logger.debug(f"CLK falling")
+            logger.debug("CLK falling")
 
         was_clockwise = dt_pin_value != pin_value
         self.rotate(was_clockwise)

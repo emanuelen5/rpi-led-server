@@ -15,5 +15,3 @@ def get_env(name: str, default: Any, _type: type = str):
     except ValueError:
         logger.warning(f"Could not interpret {name} ({value_str}) as {_type}. Using default value of {default}.")
     return default
-
-
