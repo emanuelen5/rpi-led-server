@@ -5,16 +5,6 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            "led_mode": "COLOR", 
-            "led_settings": {
-              "brightness": 1.0, 
-              "color_index": 0, 
-              "cycle_index": 0, 
-              "speed": 0.01, 
-              "strength": 1.0
-            }, 
-            "main_mode": "DEMO", 
-            "select_mode": "MAIN_WINDOW"
         };
         this.update = this.update.bind(this);
         setTimeout(this.update, 500);

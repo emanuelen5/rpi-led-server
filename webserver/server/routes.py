@@ -1,6 +1,5 @@
 from enum import Enum
 from pathlib import Path
-from util import cycle_enum
 from app.settings import Globals
 from flask import Flask, request, jsonify, redirect
 from werkzeug.exceptions import HTTPException
@@ -37,7 +36,6 @@ def root():
 
 @app.route(ENDPOINTS.SETTINGS)
 def get_settings():
-    Globals.main_mode = cycle_enum(Globals.main_mode)
     return {
         "led_settings": Globals.led_settings,
         "main_mode": Globals.main_mode.name,
