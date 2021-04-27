@@ -6,27 +6,36 @@ import liboled
 
 @dataclass
 class DisplayModel:
-    buffer: np.ndarray = field(
+    _front_buffer: np.ndarray = field(
+        default_factory=lambda: np.zeros((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3), dtype=np.float32))
+    back_buffer: np.ndarray = field(
         default_factory=lambda: np.zeros((liboled.OLED_HEIGHT, liboled.OLED_WIDTH, 3), dtype=np.float32))
 
     def clear(self):
-        self.buffer[:, :, :] = 0.0
+        self.back_buffer[:, :, :] = 0.0
 
     def string(self, x, y, s: str, color=(1., 1., 1.)):
-        cv2.putText(self.buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.25, color)
+        cv2.putText(self.back_buffer, s, (x, y), cv2.FONT_HERSHEY_DUPLEX, 0.25, color)
 
     def refresh(self):
-        self.buffer[self.buffer < 0] = 0
-        self.buffer[self.buffer > 1.0] = 1.0
-        liboled.display(self.buffer)
+        """
+        Copies the back-buffer into the front-buffer (shows it on the display)
+        """
+        self._front_buffer[:, :, :] = self.back_buffer[:, :, :]
+        self._front_buffer[self._front_buffer < 0] = 0
+        self._front_buffer[self._front_buffer > 1.0] = 1.0
+        liboled.display(self._front_buffer)
 
     def get_buffer(self) -> np.ndarray:
-        buffer = liboled.get_buffer().astype(np.float32)
-        buffer = cv2.cvtColor(buffer, cv2.COLOR_RGB2BGR)
-        buffer[:, :, 0] = buffer[:, :, 0] * 1.0 / 0xF8
-        buffer[:, :, 1] = buffer[:, :, 1] * 1.0 / 0xFC
-        buffer[:, :, 2] = buffer[:, :, 2] * 1.0 / 0xF8
-        return buffer
+        front_buffer_from_display = liboled.get_buffer().astype(np.float32)
+        front_buffer_from_display = cv2.cvtColor(front_buffer_from_display, cv2.COLOR_RGB2BGR)
+        front_buffer_from_display[:, :, 0] = front_buffer_from_display[:, :, 0] * 1.0 / 0xF8
+        front_buffer_from_display[:, :, 1] = front_buffer_from_display[:, :, 1] * 1.0 / 0xFC
+        front_buffer_from_display[:, :, 2] = front_buffer_from_display[:, :, 2] * 1.0 / 0xF8
+        return front_buffer_from_display
+
+    def get_front_buffer(self) -> np.ndarray:
+        return self._front_buffer.copy()
 
     def open(self):
         liboled.init()
@@ -47,14 +56,13 @@ class DisplayModelViewer:
 
     def __post_init__(self):
         # Pre-compute grid
-        scaled_buffer = cv2.resize(self.model.buffer, fx=self.scaling, fy=self.scaling, dsize=None)
+        scaled_buffer = cv2.resize(self.model.back_buffer, fx=self.scaling, fy=self.scaling, dsize=None)
         y, x, z = scaled_buffer.shape
         X, Y, _ = np.meshgrid(range(x), range(y), range(z))
         self.grid = (Y % self.scaling == self.scaling - 1) | (X % self.scaling == self.scaling - 1)
 
     def render(self) -> np.ndarray:
-        self.model.refresh()
-        buffer = self.model.get_buffer()
+        buffer = self.model.get_front_buffer()
         buffer = cv2.resize(buffer, fx=self.scaling, fy=self.scaling, dsize=None, interpolation=cv2.INTER_NEAREST)
         # Make grid
         buffer[self.grid] = 0.1 + buffer[self.grid] * 0.9
