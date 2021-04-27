@@ -5,6 +5,7 @@ from oled.fonts import put_string
 from liboled import OLED_WIDTH, OLED_HEIGHT
 import cv2
 import numpy as np
+import resources
 import time
 from argparse import ArgumentParser
 
@@ -19,11 +20,11 @@ show_viewer = not args.no_viewer
 def main():
     with OLED() as display:
         image_smol1 = cv2.cvtColor(cv2.resize(
-            cv2.imread("test-image.png"),
+            cv2.imread(str(resources.PATH_TEST_IMAGE1)),
             dsize=(OLED_WIDTH, OLED_HEIGHT),
             interpolation=cv2.INTER_AREA).astype(np.float32) / 256., cv2.COLOR_BGR2RGB)
         image_smol2 = cv2.cvtColor(cv2.resize(
-            cv2.imread("test-image2.png"),
+            cv2.imread(str(resources.PATH_TEST_IMAGE2)),
             dsize=(OLED_WIDTH, OLED_HEIGHT),
             interpolation=cv2.INTER_AREA).astype(np.float32) / 256., cv2.COLOR_BGR2RGB)
         start_time = time.time()
