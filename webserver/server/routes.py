@@ -23,7 +23,8 @@ def handle_error(e):
 class ENDPOINTS(str, Enum):
     ROOT = "/"
     ROOT_HTML = "/index.html"
-    SETTINGS = "/settings"
+    SETTINGS = "/api/settings"
+    SHUTDOWN = "/api/shutdown"
 
     def __str__(self):
         return self.value

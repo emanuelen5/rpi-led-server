@@ -1,3 +1,5 @@
-cd ..
-FLASK_APP=main_flask.py FLASK_RUN_PORT=5000 FLASK_ENV=development FLASK_RUN_EXTRA_FILES="*.py:src/*:main_flask.py" \
-	flask run --host 0.0.0.0
+GUNICORN_FLAGS=--reload
+GUNICORN_WORKERS=1
+GUNICORN_PORT=5001
+
+gunicorn $GUNICORN_FLAGS --access-logfile - --worker-class sync --chdir .. --workers=$GUNICORN_WORKERS -b :$GUNICORN_PORT main_flask:flask_app

@@ -1,5 +1,5 @@
 develop:
-	$(MAKE) -j livereload serve-watch webpack-watch
+	$(MAKE) -j serve-watch webpack-watch
 
 # Web server (Python)
 serve:
@@ -9,12 +9,9 @@ serve-watch:
 
 # Client code (JS etc.)
 webpack-watch:
-	npx webpack --watch --config webpack.dev.js
+	npx webpack-dev-server --config webpack.dev.js
 webpack-build:
 	npx webpack --config webpack.prod.js
-# Reload of client code
-livereload:
-	livereload --host 0.0.0.0 -t ./static
 
 clean:
 	rm -rf .build

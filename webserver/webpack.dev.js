@@ -7,6 +7,13 @@ module.exports = merge(common, {
     devtool: false,
     devServer: {
         contentBase: './.build',
+            host: "0.0.0.0",
+            port: 5000,
+            public: 'http://localhost:5000',
+            publicPath: '/',
+            proxy: {
+                '/api': 'http://localhost:5001',
+            }
     },
     plugins: [
         new webpack.EvalSourceMapDevToolPlugin({

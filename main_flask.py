@@ -2,7 +2,7 @@ import app.app as app
 from app.settings import Globals
 import logging
 import sys
-from webserver.server.routes import app as flask_app
+from webserver.server.routes import app as flask_app, ENDPOINTS
 import resources
 from resources.util import get_env
 resources.init_dotenv()
@@ -30,7 +30,7 @@ def start():
     app.start(num_pixels=PIXEL_COUNT)
 
 
-@flask_app.route("/shutdown", methods=("POST",))
+@flask_app.route(ENDPOINTS.SHUTDOWN, methods=("POST",))
 def shutdown():
     app.stop()
 

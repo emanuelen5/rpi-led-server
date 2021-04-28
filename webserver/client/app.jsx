@@ -11,7 +11,7 @@ class App extends Component {
     }
 
     update() {
-        $.get("/settings").then(data => {
+        $.get("/api/settings").then(data => {
             this.setState(data);
             setTimeout(this.update, 500);
         });
