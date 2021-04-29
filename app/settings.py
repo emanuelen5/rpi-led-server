@@ -70,7 +70,7 @@ class Globals:
         with open(filename, "wb") as f:
             pickle.dump({k: getattr(cls, k) for k in (
                 "led_mode", "main_mode", "select_mode",
-                "led_settings", "show_viewer", "screen_saver_time")
+                "led_settings", "screen_saver_time")
                          }, f)
 
     @classmethod
