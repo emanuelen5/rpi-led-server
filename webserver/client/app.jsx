@@ -7,14 +7,20 @@ class App extends Component {
         this.state = {
         };
         this.update = this.update.bind(this);
-        setTimeout(this.update, 500);
+        this.update("/api/display", 200);
+        this.update("/api/settings", 500);
     }
 
-    update() {
-        $.get("/api/settings").then(data => {
+    update(endpoint, timeout_ms=500) {
+        const setstate_cb = data => {
             this.setState(data);
-            setTimeout(this.update, 500);
-        });
+        };
+        const cb = () => {
+            console.debug(`Running cb for ${endpoint}`);
+            $.get(endpoint).then(setstate_cb);
+            setTimeout(cb, timeout_ms);
+        };
+        cb();
     }
 
 	render() {

@@ -1,6 +1,7 @@
 from enum import Enum
 from pathlib import Path
 from app.settings import Globals
+from util import max_update_rate
 from flask import Flask, request, jsonify, redirect
 from werkzeug.exceptions import HTTPException
 import logging
@@ -25,6 +26,7 @@ class ENDPOINTS(str, Enum):
     ROOT_HTML = "/index.html"
     SETTINGS = "/api/settings"
     SHUTDOWN = "/api/shutdown"
+    DISPLAY = "/api/display"
 
     def __str__(self):
         return self.value
@@ -43,3 +45,14 @@ def get_settings():
         "select_mode": Globals.select_mode.name,
         "led_mode": Globals.led_mode.name
     }
+
+
+i = 0
+
+
+@app.route(ENDPOINTS.DISPLAY)
+@max_update_rate(1./60)
+def get_display():
+    global i
+    i += 1
+    return {"display": i}
