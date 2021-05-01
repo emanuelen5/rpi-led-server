@@ -2,7 +2,7 @@ import app.app as app
 from app.settings import Globals
 import logging
 import sys
-from webserver.server.routes import app as flask_app, ENDPOINTS
+from webserver.server.routes import app as flask_app, socketio, ENDPOINTS
 import resources
 from resources.util import get_env
 resources.init_dotenv()
@@ -43,7 +43,7 @@ def main():
         except FileNotFoundError:
             logger.info("No previous led session file found")
 
-    flask_app.run(HOST, port=PORT, debug=True)
+    socketio.run(HOST, port=PORT, debug=True)
 
 
 if __name__ == "__main__":

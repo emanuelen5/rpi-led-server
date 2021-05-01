@@ -46,6 +46,7 @@ module.exports = {
             patterns: [
                 { from: 'node_modules/bootstrap/dist/css/bootstrap.min.css{,.map}', to: 'css/[name].[ext]'},
                 { from: 'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js{,.map}', to: 'js/[name].[ext]'},
+                { from: 'node_modules/socket.io/dist/client.js', to: 'js/socketio.[name].[ext]'},
                 { from: 'node_modules/jquery/dist/jquery.min.*', to: 'js/[name].[ext]'},
                 { from: 'node_modules/font-awesome/css/font-awesome.{css.map,min.css}', to: 'css/[name].[ext]'},
                 { from: 'node_modules/font-awesome/fonts/*.woff2', to: 'fonts/[name].[ext]'},
@@ -61,7 +62,7 @@ module.exports = {
         }),
         new HtmlWebpackTagsPlugin({
             append: false,
-            scripts: ['js/jquery.min.js', 'js/bootstrap.bundle.min.js'],
+            scripts: ['js/jquery.min.js', 'js/bootstrap.bundle.min.js', 'js/socketio.client.js'],
         }),
         new webpack.ProgressPlugin(),
         new CleanWebpackPlugin({

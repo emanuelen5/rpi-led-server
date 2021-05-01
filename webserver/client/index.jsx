@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import StorageItem from "./storage"
 
-import $ from 'jquery';
 import 'bootstrap';
 
 require('../static/index.html');

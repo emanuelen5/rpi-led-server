@@ -3,13 +3,28 @@ from pathlib import Path
 from app.settings import Globals
 from util import max_update_rate
 from flask import Flask, request, jsonify, redirect
+from flask_socketio import SocketIO, emit
 from werkzeug.exceptions import HTTPException
 import logging
 
 logger = logging.getLogger(__name__)
 
+
+class ENDPOINTS(str, Enum):
+    ROOT = "/"
+    ROOT_HTML = "/index.html"
+    SETTINGS = "/api/settings"
+    SHUTDOWN = "/api/shutdown"
+    DISPLAY = "/api/display"
+    SOCKETIO = "/api/socketio"
+
+    def __str__(self):
+        return self.value
+
+
 static_path = str(Path(__file__).parent.joinpath("../.build"))
 app = Flask(__name__, static_url_path='', static_folder=static_path)
+socketio = SocketIO(app, path=ENDPOINTS.SOCKETIO)
 
 
 @app.errorhandler(Exception)
@@ -19,17 +34,6 @@ def handle_error(e):
     if isinstance(e, HTTPException):
         code = e.code
     return jsonify(error=str(e), status=code), code
-
-
-class ENDPOINTS(str, Enum):
-    ROOT = "/"
-    ROOT_HTML = "/index.html"
-    SETTINGS = "/api/settings"
-    SHUTDOWN = "/api/shutdown"
-    DISPLAY = "/api/display"
-
-    def __str__(self):
-        return self.value
 
 
 @app.route(ENDPOINTS.ROOT)
