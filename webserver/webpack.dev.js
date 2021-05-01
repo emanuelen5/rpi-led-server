@@ -13,6 +13,7 @@ module.exports = merge(common, {
             publicPath: '/',
             proxy: {
                 '/api': 'http://localhost:5001',
+                '/socket.io': 'http://localhost:5001/socket.io',
             }
     },
     plugins: [

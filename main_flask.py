@@ -3,6 +3,7 @@ from app.settings import Globals
 import logging
 import sys
 from webserver.server.routes import app as flask_app, socketio, ENDPOINTS
+from flask_socketio import emit
 import resources
 from resources.util import get_env
 resources.init_dotenv()
@@ -35,6 +36,12 @@ def shutdown():
     app.stop()
 
 
+@socketio.on('connect')
+def test_connect():
+    print("Connected.......................................................................")
+    emit('my response', {'data': 'Connected'})
+
+
 def main():
     print("Starting app", flush=True, file=sys.stderr)
     if not NEW_SESSION:
@@ -42,8 +49,10 @@ def main():
             Globals.load()
         except FileNotFoundError:
             logger.info("No previous led session file found")
-
-    socketio.run(HOST, port=PORT, debug=True)
+    flask_app.host = HOST
+    flask_app.port = PORT
+    flask_app.debug = True
+    socketio.run(flask_app)
 
 
 if __name__ == "__main__":

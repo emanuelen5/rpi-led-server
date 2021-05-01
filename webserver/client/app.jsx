@@ -1,6 +1,26 @@
 import React, { Component } from "react";
 import $ from 'jquery';
-import { io } from "socket.io/client-dist/socket.io";
+import { Manager } from "socket.io-client";
+
+const manager = new Manager("ws://" + window.location.host + "/api/socketio", {
+    path: "/api/socketio",
+    reconnectionDelayMax: 10000,
+    query: {
+        "my-key": "my-value"
+    },
+});
+
+const socket = manager.socket("/test", {
+    auth: {
+        token: "123"
+    }
+});
+socket.on("connect", () => {
+    console.log("Connected with id: " + socket.id);
+});
+socket.on("reconnect", () => {
+    console.log("Reconnected");
+});
 
 class App extends Component {
     constructor(props) {
@@ -8,13 +28,8 @@ class App extends Component {
         this.state = {
         };
         this.update = this.update.bind(this);
-        this.update("/api/display", 200);
-        this.update("/api/settings", 500);
-
-        const socket = io.connect('http://localhost:5000/socket');
-        socket.on('after connect', function(msg) {
-            console.log('After connect', msg);
-        });
+        //this.update("/api/display", 200);
+        //this.update("/api/settings", 500);
     }
 
     update(endpoint, timeout_ms=500) {

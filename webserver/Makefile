@@ -9,7 +9,8 @@ serve-watch:
 
 # Client code (JS etc.)
 webpack-watch:
-	npx webpack-dev-server --config webpack.dev.js
+	npx webpack --watch --config webpack.dev.js
+	# npx webpack-dev-server --config webpack.dev.js
 webpack-build:
 	npx webpack --config webpack.prod.js
 

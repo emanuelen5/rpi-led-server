@@ -59,4 +59,4 @@ i = 0
 def get_display():
     global i
     i += 1
-    return {"display": i}
+    return {"count": i}
