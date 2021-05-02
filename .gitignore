@@ -1,4 +1,4 @@
-*.html
+README.html
 __pycache__
 .idea
 build
