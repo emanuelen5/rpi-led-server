@@ -4,6 +4,7 @@ import logging
 import sys
 from webserver.server.routes import app as flask_app, socketio, ENDPOINTS
 from flask_socketio import emit
+from webserver.server.celery import make_celery
 import resources
 from resources.util import get_env
 resources.init_dotenv()
@@ -19,6 +20,13 @@ PORT = get_env("RPI_LED_SERVER_PORT", 5000, int)
 HOST = get_env("RPI_LED_SERVER_HOST", "0.0.0.0")
 
 
+flask_app.config.update(
+    CELERY_RESULT_BACKEND='rpc://',
+    CELERY_BROKER_URL='amqp://celery:celery@localhost:5672',
+)
+celery = make_celery(flask_app)
+
+
 if not NEW_SESSION:
     try:
         Globals.load()
@@ -26,9 +34,15 @@ if not NEW_SESSION:
         logger.info("No previous led session file found")
 
 
+@celery.task(name="led-server")
+def main_led_server(num_pixels: int):
+    print("MAIN LED SERVER!")
+    app.start(num_pixels=num_pixels)
+
+
 @flask_app.before_first_request
 def start():
-    app.start(num_pixels=PIXEL_COUNT)
+    main_led_server.delay(num_pixels=PIXEL_COUNT)
 
 
 @flask_app.route(ENDPOINTS.SHUTDOWN, methods=("POST",))

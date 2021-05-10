@@ -14,6 +14,12 @@ flake8-complexity:
 	# exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
 	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --show-source --statistics
 
+celery:
+	celery -A test_celery worker --concurrency=20 --loglevel=info
+
+rabbitmq:
+	docker-compose up
+
 init:
 	pip install -r requirements-dev.txt -r requirements.txt
 

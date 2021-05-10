@@ -1,0 +1,10 @@
+version: '2'
+services:
+    rabbit:
+        hostname: rabbit
+        image: rabbitmq:latest
+        environment:
+            - RABBITMQ_DEFAULT_USER=celery
+            - RABBITMQ_DEFAULT_PASS=celery
+        ports:
+            - 5672:5672
