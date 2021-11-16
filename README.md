@@ -1,7 +1,10 @@
 [![Build Python Package status badge](https://github.com/emanuelen5/rpi-led-server/actions/workflows/python.yml/badge.svg)](https://github.com/emanuelen5/rpi-led-server/actions/workflows/python.yml)
 
 # Raspberry Pi LED server
-This project will serve as an LED server that connects to external services through Ethernet and fetches data which can then be shown through the means of an LED light show.
+A server for controlling LED:s on a Raspberry Pi using custom-hardware and Python-drivers/extensions.
+
+## Demonstration (using mock/simulated drivers)
+![Usage video](doc/usage-video-poster.gif)
 
 ## [Hardware](./doc/hardware.md)
 
@@ -81,6 +84,3 @@ python rotary_encoder.py # Reacts to twisting and button presses
 python main_leds.py # Runs a color wheel on the LEDs
 python main.py # Combined application
 ```
-
-#### Example usage
-![Usage video](doc/usage-video-poster.gif)
